@@ -31,7 +31,7 @@ class User(AbstractUser):
 
     created_at = models.DateTimeField(default=timezone.now, db_column="createdAt")
     updated_at = models.DateTimeField(default=timezone.now, db_column="updatedAt")
-    role = models.TextField(choices=UserRole, default=UserRole.USER)
+    role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.USER)
     location = models.JSONField(null=True, blank=True)
     # Array fields ignored for now 
 
@@ -62,7 +62,7 @@ class Job(models.Model):
     gender = models.BooleanField(null=True, blank=True, db_column="Gender")
 
     location = models.JSONField(null=True, blank=True)
-    job_type = models.TextField(choices=JobType, null=True, blank=True, db_column="jobType")
+    job_type = models.CharField(max_length=20, choices=JobType.choices, null=True, blank=True, db_column="jobType")
     location_name = models.TextField(null=True, blank=True, db_column="locationName")
     company = models.TextField(null=True, blank=True, db_column="Company")
     duration = models.TextField(null=True, blank=True, db_column="Duration")  # 6months, 1 year
