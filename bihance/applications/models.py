@@ -1,7 +1,10 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 import uuid
+
+from django.db import models
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+
 
 class UserRole(models.TextChoices):
     ADMIN = 'admin', 'Admin'
@@ -15,68 +18,84 @@ class JobType(models.TextChoices):
     INTERNSHIP = 'INTERNSHIP', 'Internship'
 
 class User(AbstractUser):
-    id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
-    first_name = models.CharField(max_length=255, null=True, blank=True)
-    last_name = models.CharField(max_length=255, null=True, blank=True)
+    user_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="id")
+    first_name = models.TextField(null=True, blank=True, db_column="firstName")
+    last_name = models.TextField(null=True, blank=True, db_column="lastName")
     email = models.EmailField(unique=True)
-    image_url = models.URLField(null=True, blank=True)
-    phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    image_url = models.URLField(null=True, blank=True, db_column="imageUrl")
+    phone = models.TextField(unique=True, null=True, blank=True)
+
     employee = models.BooleanField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
-    role = models.CharField(max_length=10, choices=UserRole.choices, default=UserRole.USER)
+
+    created_at = models.DateTimeField(default=timezone.now, db_column="createdAt")
+    updated_at = models.DateTimeField(default=timezone.now, db_column="updatedAt")
+    role = models.TextField(choices=UserRole, default=UserRole.USER)
     location = models.JSONField(null=True, blank=True)
+    # Array fields ignored for now 
 
     class Meta:
+        db_table = "user"
+        managed = False
         indexes = [
             models.Index(fields=['email']),
         ]
 
+
 class Job(models.Model):
-    job_id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
-    name = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jobs')
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True, blank=True)
-    salary = models.FloatField(null=True, blank=True)
-    higher_salary = models.FloatField(null=True, blank=True)
-    description = models.TextField()
-    requirements = models.TextField(null=True, blank=True)
-    posted_date = models.DateTimeField()
-    photo_url = models.URLField()
-    start_age = models.IntegerField(null=True, blank=True)
-    end_age = models.IntegerField(null=True, blank=True)
-    gender = models.BooleanField(null=True, blank=True)
+    job_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="jobId")
+    name = models.CharField(max_length=255, db_column="Name")
+    employer_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="id")
+
+    start_date = models.DateTimeField(db_column="StartDate")
+    end_date = models.DateTimeField(null=True, blank=True, db_column="EndDate")
+    salary = models.FloatField(null=True, blank=True, db_column="Salary")
+    higher_salary = models.FloatField(null=True, blank=True, db_column="HigherSalary")
+    description = models.TextField(db_column="Description")
+    requirements = models.TextField(null=True, blank=True, db_column="Requirements")
+
+    posted_date = models.DateTimeField(db_column="PostedDate")
+    photo_url = models.URLField(db_column="PhotoUrl")
+    start_age = models.IntegerField(null=True, blank=True, db_column="Startage")
+    end_age = models.IntegerField(null=True, blank=True, db_column="Endage")
+    gender = models.BooleanField(null=True, blank=True, db_column="Gender")
+
     location = models.JSONField(null=True, blank=True)
-    job_type = models.CharField(max_length=20, choices=JobType.choices, null=True, blank=True)
-    location_name = models.CharField(max_length=255, null=True, blank=True)
-    company = models.CharField(max_length=255, null=True, blank=True)
-    duration = models.CharField(max_length=255, null=True, blank=True)  # 6months, 1 year
-    pay_type = models.CharField(max_length=255, null=True, blank=True)  # hourly, monthly, contract
+    job_type = models.TextField(choices=JobType, null=True, blank=True, db_column="jobType")
+    location_name = models.TextField(null=True, blank=True, db_column="locationName")
+    company = models.TextField(null=True, blank=True, db_column="Company")
+    duration = models.TextField(null=True, blank=True, db_column="Duration")  # 6months, 1 year
+    pay_type = models.TextField(null=True, blank=True, db_column="PayType")  # hourly, monthly, contract
+    # Array fields ignored for now 
 
     class Meta:
+        db_table = "Job"
+        managed = False
         indexes = [
-            models.Index(fields=['user']),
+            models.Index(fields=['employer_id']),
             models.Index(fields=['job_type']),
             models.Index(fields=['location_name']),
         ]
 
+
 class Application(models.Model):
-    application_id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
-    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    application_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="applicationId")
+    job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
     accept = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
-    bio = models.TextField(null=True, blank=True)
-    employee_review = models.TextField(null=True, blank=True)
-    employer_review = models.TextField(null=True, blank=True)
-    employer_id = models.CharField(max_length=255, null=True, blank=True)
+    employee_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="id")
+    bio = models.TextField(null=True, blank=True, db_column="Bio")
+    employee_review = models.TextField(null=True, blank=True, db_column="EmployeeReview")
+    employer_review = models.TextField(null=True, blank=True, db_column="EmployerReview")
+    employer_id = models.TextField(null=True, blank=True, db_column="employerId")
+    # Array fields ignored for now 
 
     class Meta:
+        db_table = "application"
+        managed = False
         indexes = [
-            models.Index(fields=['user']),
-            models.Index(fields=['job']),
+            models.Index(fields=['job_id']),
+            models.Index(fields=['employee_id']),
         ]
 
-        
+
