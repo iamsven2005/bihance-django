@@ -31,7 +31,7 @@ class JWTAuthenticationMiddleware(BaseAuthentication):
             return None
         
         clerk = ClerkSDK()
-        info, found = clerk.fetch_user_info(user.user_id)
+        info, found = clerk.fetch_user_info(user.id)
         if found: 
             user.email = info["email"]
             user.first_name = info["first_name"]
@@ -68,7 +68,7 @@ class JWTAuthenticationMiddleware(BaseAuthentication):
         if user_id: 
             # Even if user was created
             # Other compulsory fields will be set later
-            user, created = User.objects.get_or_create(user_id=user_id)
+            user, created = User.objects.get_or_create(id=user_id)
             return user 
         
         return None
@@ -80,7 +80,7 @@ class ClerkSDK:
     def fetch_user_info(self, user_id: str): 
         api_endpoint = f'{CLERK_API_URL}/users/{user_id}'
         headers = {"Authorization": f'Bearer {os.getenv('CLERK_SECRET_KEY')}'}
-        response = requests.get(api_endpoint, headers)
+        response = requests.get(api_endpoint, headers=headers)
 
         # 200 OK
         if response.status_code == 200: 
@@ -92,7 +92,7 @@ class ClerkSDK:
             }, True
         else:
             return {
-                "email_address": "",
+                "email": "",
                 "first_name": "",
                 "last_name": "",
             }, False
@@ -101,7 +101,7 @@ class ClerkSDK:
     def get_jwks(self): 
         jwks_data = cache.get(CACHE_KEY)
         if not jwks_data:
-            api_endpoint = f'{os.getenv('CLERK_FRONTEND_API_URL')}'
+            api_endpoint = f'{os.getenv('CLERK_FRONTEND_API_URL')}/.well-known/jwks.json'
             response = requests.get(api_endpoint)
             
             # 200 OK

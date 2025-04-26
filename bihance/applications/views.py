@@ -15,8 +15,8 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         try:
             # Extract relevant GET parameters 
             # Seems like these are supposed to be optional
-            application_status = request.data.get("applicationStatus", None) 
-            user_only = request.data.get("userOnly", None) == "true"
+            application_status = request.query_params.get("applicationStatus", None) 
+            user_only = request.query_params.get("userOnly", None) == "true"
         
             if user_only:
                 # User should be EMPLOYEE
@@ -33,6 +33,9 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             # Okay for querySet to be empty 
             return JsonResponse(applications, safe=False)
         
+        except TypeError:
+            return HttpResponse("Failed to serialize applications to JSON. Possible invalid data format.", status=500)
+    
         except Exception:
             if user_only: 
                 return HttpResponse("GET request for user only applications failed.", status=500)
@@ -142,7 +145,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # DELETE
     def destroy(self, request): 
         # User should be EMPLOYEE
-        application_id = request.data.get("applicationId", None) 
+        application_id = request.query_params.get("applicationId", None) 
 
         if application_id is None: 
             return HttpResponse("DELETE request did not supply application_id to be deleted.", status=500)

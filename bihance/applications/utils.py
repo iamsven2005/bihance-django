@@ -12,6 +12,10 @@ def get_employee_applications(employee_id):
 def get_all_applications(user_id, application_status: int | None): 
     is_employee = User.objects.get(id=user_id).employee
 
+    # Temp workaround, for the fact that employee field may be NULL
+    if not is_employee:
+        is_employee = True 
+    
     if is_employee:
         # Get their applications only 
         queryset = Application.objects.filter(employee_id=user_id).select_related("job")
@@ -21,7 +25,7 @@ def get_all_applications(user_id, application_status: int | None):
 
     if application_status is not None:
         queryset = queryset.filter(accept=application_status)
-
+        
     return queryset
 
 
