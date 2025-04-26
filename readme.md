@@ -16,4 +16,3 @@
 9. python manage.py migrate
 10. python manage.py runserver 0.0.0.0:8000
 
-## You are now good to go!! 🥵
