@@ -24,6 +24,7 @@ ALLOWED_HOSTS = ['bihance-django.onrender.com', 'localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework', 
     'applications.apps.ApplicationsConfig', 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -126,3 +127,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "applications.User"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'applications.authentication.JWTAuthenticationMiddleware',
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",        
+    ),
+}
+
+

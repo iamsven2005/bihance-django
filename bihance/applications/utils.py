@@ -4,20 +4,20 @@ from .models import Application, User
 
 
 # Helper functions
-def get_user_applications(employee_id):
-    user_applications = Application.objects.filter(user=employee_id).select_related("job")
-    return user_applications 
+def get_employee_applications(employee_id):
+    employee_applications = Application.objects.filter(employee_id=employee_id).select_related("job")
+    return employee_applications 
     
 
-def get_all_applications(user_id, application_status): 
+def get_all_applications(user_id, application_status: int | None): 
     is_employee = User.objects.get(id=user_id).employee
 
     if is_employee:
         # Get their applications only 
-        queryset = Application.objects.filter(user=user_id).select_related("job")
+        queryset = Application.objects.filter(employee_id=user_id).select_related("job")
     else:
         # Get applications to their job only 
-        queryset = Application.objects.filter(job=user_id).select_related("job", "user")
+        queryset = Application.objects.filter(employer_id=user_id).select_related("job", "user")
 
     if application_status is not None:
         queryset = queryset.filter(accept=application_status)
@@ -34,7 +34,7 @@ def send_email(to, subject, message):
         "from": from_email,
         "to": to,
         "subject": subject,
-        "html": message,
+        "html": f'<p>{message}</p>',
     }
 
     resend.Emails.send(params)

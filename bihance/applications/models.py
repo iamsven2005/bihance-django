@@ -17,11 +17,27 @@ class JobType(models.TextChoices):
     TEMPORARY = 'TEMPORARY', 'Temporary'
     INTERNSHIP = 'INTERNSHIP', 'Internship'
 
-class User(AbstractUser):
-    user_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="id")
+
+class User(AbstractUser):    
+    # Updating some defaults from AbstractUser
+    id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="id")
     first_name = models.TextField(null=True, blank=True, db_column="firstName")
     last_name = models.TextField(null=True, blank=True, db_column="lastName")
     email = models.EmailField(unique=True)
+
+    # Removing some defaults from AbstractUser
+    password = None 
+    last_login = None 
+    is_superuser = None
+    username = None 
+    is_staff = None 
+    is_active = None 
+    date_joined = None 
+
+    # Since username is removed
+    # Need to point this to another unique field
+    USERNAME_FIELD = 'id' 
+
     image_url = models.URLField(null=True, blank=True, db_column="imageUrl")
     phone = models.TextField(unique=True, null=True, blank=True)
 
@@ -84,6 +100,7 @@ class Application(models.Model):
     job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
     accept = models.IntegerField()
     employee_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="id")
+    
     bio = models.TextField(null=True, blank=True, db_column="Bio")
     employee_review = models.TextField(null=True, blank=True, db_column="EmployeeReview")
     employer_review = models.TextField(null=True, blank=True, db_column="EmployerReview")
