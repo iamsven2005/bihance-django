@@ -9,5 +9,11 @@
    - DATABASE_URL
    - CLERK_FRONTEND_API_URL
    - CLERK_SECRET_KEY
+   - RESEND_API_KEY
+   - RESEND_FROM_EMAIL
+
+8. python manage.py makemigrations
+9. python manage.py migrate
+10. python manage.py runserver 0.0.0.0:8000
 
 ## You are now good to go!! 🥵
