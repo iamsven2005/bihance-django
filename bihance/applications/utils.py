@@ -1,11 +1,12 @@
 import os 
-import resend
 from .models import Application, User
+from django.conf import settings
+from django.core.mail import EmailMessage, get_connection
 
 
 # Helper functions
 def get_employee_applications(employee_id):
-    employee_applications = Application.objects.filter(employee_id=employee_id).select_related("job")
+    employee_applications = Application.objects.filter(employee_id=employee_id)
     return employee_applications 
     
 
@@ -18,10 +19,10 @@ def get_all_applications(user_id, application_status: int | None):
     
     if is_employee:
         # Get their applications only 
-        queryset = Application.objects.filter(employee_id=user_id).select_related("job")
+        queryset = Application.objects.filter(employee_id=user_id)
     else:
         # Get applications to their job only 
-        queryset = Application.objects.filter(employer_id=user_id).select_related("job", "user")
+        queryset = Application.objects.filter(employer_id=user_id)
 
     if application_status is not None:
         queryset = queryset.filter(accept=application_status)
@@ -29,18 +30,23 @@ def get_all_applications(user_id, application_status: int | None):
     return queryset
 
 
-def send_email(to, subject, message): 
+def send_email(recipient_list, subject, message): 
     from_email = os.getenv("RESEND_FROM_EMAIL")
-    resend.api_key = os.getenv("RESEND_API_KEY")
 
-    # "to" expects a list of string emails
-    params: resend.Emails.SendParams = {
-        "from": from_email,
-        "to": to,
-        "subject": subject,
-        "html": f'<p>{message}</p>',
-    }
+    with get_connection(
+        host=settings.RESEND_SMTP_HOST,
+        port=settings.RESEND_SMTP_PORT,
+        username=settings.RESEND_SMTP_USERNAME,
+        password=os.getenv("RESEND_API_KEY"), 
+        use_tls=True,
+    ) as connection: 
+        EmailMessage(
+            subject=subject,
+            body=message,
+            to=recipient_list,
+            from_email=from_email,
+            connection=connection
+        ).send()
+        
 
-    resend.Emails.send(params)
     
-

@@ -1,8 +1,8 @@
+from .models import Application, User, Job
+from .serializers import ApplicationSerializer
+from .utils import get_employee_applications, get_all_applications, send_email
 from django.http import JsonResponse, HttpResponse
 from rest_framework import permissions, viewsets
-from .models import Application, User, Job
-from .utils import get_employee_applications, get_all_applications, send_email
-from .serializers import ApplicationSerializer
 
 
 class ApplicationsViewSet(viewsets.ModelViewSet):
@@ -10,7 +10,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     serializer_class = ApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    # GET multiple 
+    # GET multiple -> applications/
     def list(self, request):
         try:
             # Extract relevant GET parameters 
@@ -29,9 +29,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 else: 
                     applications = get_all_applications(user_id=request.user.id, application_status=int(application_status))
 
-            # Returns a querySet, hence safe=False
-            # Okay for querySet to be empty 
-            return JsonResponse(applications, safe=False)
+            # Use serializer to serialize the selected model rows in applications
+            # Return the serialized data! (list of dictionaries)
+            serializer = ApplicationsViewSet.serializer_class(applications, many=True)
+            return JsonResponse(serializer.data, safe=False)
         
         except TypeError:
             return HttpResponse("Failed to serialize applications to JSON. Possible invalid data format.", status=500)
@@ -44,7 +45,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 return HttpResponse("GET request for all applications failed.", status=500)
 
     
-    # POST 
+    # POST -> applications/
     def create(self, request):
         # User should be EMPLOYEE
         employee_id = request.user.id
@@ -74,18 +75,28 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return HttpResponse(f"No employer corresponding to the application.", status=500)
         
+        # Check if the applications exists already 
+        existing_application = Application.objects.filter(
+            job_id=job_record,
+            employee_id=employee_record,
+            employer_id=employer_id
+        ).first()
+
+        if existing_application:
+            return HttpResponse("Application already exists.", status=400)
+
         # Create the application
         Application.objects.create(
-            job_id=job_id,
+            job_id=job_record,
             accept=1, # 1 means pending
-            employee_id=employee_id,
+            employee_id=employee_record,
             employer_id=employer_id
         )
 
         # Send email to EMPLOYEE 
         if employee_record.email: 
             send_email(
-                to=[employee_record.email],
+                recipient_list=[employee_record.email],
                 subject="Job Application Submitted", 
                 message=f"You have successfully applied for {job_record.name}."
             )
@@ -93,7 +104,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         # Send email to EMPLOYER 
         if employer_record.email:
             send_email(
-                to=[employer_record.email], 
+                recipient_list=[employer_record.email], 
                 subject="New Job Application",
                 message=f"You have a new job application for {job_id}, from {employee_id}."
             )
@@ -101,8 +112,8 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         return HttpResponse("Application created successfully.", status=200) 
 
 
-    # PATCH
-    def partial_update(self, request): 
+    # PATCH -> applications/pk
+    def partial_update(self, request, pk=None): 
         # User should be EMPLOYER
         application_id = request.data.get("applicationId", None)
         new_status = request.data.get("newStatus", None) 
@@ -115,9 +126,12 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         # Try to retrieve the application record 
         try: 
             application_to_update = Application.objects.get(application_id=application_id)
-            job_id = application_to_update.job_id
+
+            # Quirky Django behaviour 
+            # When accessing FK field, doesnt give FK value, gives the entire PK object!
+            job_id = application_to_update.job_id.job_id        
             job_name = Job.objects.get(job_id=job_id).name
-            employee_id = application_to_update.employee_id
+            employee_id = application_to_update.employee_id.id
             employee_email = User.objects.get(id=employee_id).email
 
             application_to_update.accept = new_status
@@ -134,7 +148,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
         if employee_email: 
             send_email(
-                to=[employee_email],
+                recipient_list=[employee_email],
                 subject="Job Application Outcome",
                 message=email_message
             )
@@ -142,18 +156,15 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         return HttpResponse("Application successfully updated.", status=200)
 
 
-    # DELETE
-    def destroy(self, request): 
+    # DELETE -> applications/pk
+    def destroy(self, request, pk=None): 
         # User should be EMPLOYEE
-        application_id = request.query_params.get("applicationId", None) 
+        application_id = pk 
 
-        if application_id is None: 
-            return HttpResponse("DELETE request did not supply application_id to be deleted.", status=500)
-        
         # Try to retrieve the application record
         try:
             application_to_delete = Application.objects.get(application_id=application_id)
-            job_id = application_to_delete.job_id
+            job_id = application_to_delete.job_id.job_id
             job_name = Job.objects.get(job_id=job_id).name
             application_to_delete.delete()
 
@@ -164,7 +175,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         # Send confirmation email to EMPLOYEE
         if request.user.email:
             send_email(
-                to=[request.user.email],
+                recipient_list=[request.user.email],
                 subject="Job Application Withdrawn",
                 message=f'You have successfully withdrawn from {job_name}.'
             )
