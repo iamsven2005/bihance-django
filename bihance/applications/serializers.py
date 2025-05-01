@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Application, Job, User
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

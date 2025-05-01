@@ -9,10 +9,11 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from .models import User
 
-load_dotenv()
 
+load_dotenv()
 CLERK_API_URL='https://api.clerk.com/v1'
 CACHE_KEY = "jwks_data"
+
 
 class JWTAuthenticationMiddleware(BaseAuthentication): 
     def authenticate(self, request):
@@ -72,6 +73,7 @@ class JWTAuthenticationMiddleware(BaseAuthentication):
             return user 
         
         return None
+
 
 class ClerkSDK: 
     # Returns a tuple 

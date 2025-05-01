@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
@@ -53,7 +52,6 @@ class User(AbstractUser):
 
     class Meta:
         db_table = "user"
-        managed = False
         indexes = [
             models.Index(fields=['email']),
         ]
@@ -87,7 +85,6 @@ class Job(models.Model):
 
     class Meta:
         db_table = "Job"
-        managed = False
         indexes = [
             models.Index(fields=['employer_id']),
             models.Index(fields=['job_type']),
@@ -109,7 +106,6 @@ class Application(models.Model):
 
     class Meta:
         db_table = "application"
-        managed = False
         indexes = [
             models.Index(fields=['job_id']),
             models.Index(fields=['employee_id']),
