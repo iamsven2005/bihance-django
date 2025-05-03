@@ -61,37 +61,41 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         try: 
             job_record = Job.objects.get(job_id=job_id)       
         except Job.DoesNotExist:
-            return HttpResponse(f"No job corresponding to the application.", status=500)
+            return HttpResponse(f"No job corresponding to the application.", status=404)
         
         # Try to retrieve the employee record 
         try: 
             employee_record = User.objects.get(id=employee_id)
         except User.DoesNotExist:
-            return HttpResponse(f"No employee corresponding to the application.", status=500)
+            return HttpResponse(f"No employee corresponding to the application.", status=404)
         
         # Try to retrieve the employer record
         try: 
             employer_record = User.objects.get(id=employer_id)
         except User.DoesNotExist:
-            return HttpResponse(f"No employer corresponding to the application.", status=500)
+            return HttpResponse(f"No employer corresponding to the application.", status=404)
         
         # Check if the applications exists already 
-        existing_application = Application.objects.filter(
-            job_id=job_record,
-            employee_id=employee_record,
-            employer_id=employer_id
-        ).first()
-
-        if existing_application:
-            return HttpResponse("Application already exists.", status=400)
+        try:
+            Application.objects.get(
+                job_id=job_record,
+                employee_id=employee_record,
+                employer_id=employer_id
+            )  
+            # No exception raised, application exists 
+            return HttpResponse("Application already exists.", status=500)            
+        
+        except Application.DoesNotExist: 
+            pass
 
         # Create the application
-        Application.objects.create(
+        new_application = Application.objects.create(
             job_id=job_record,
             accept=1, # 1 means pending
             employee_id=employee_record,
             employer_id=employer_id
         )
+        new_application_id = new_application.application_id
 
         # Send email to EMPLOYEE 
         if employee_record.email: 
@@ -109,10 +113,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 message=f"You have a new job application for {job_id}, from {employee_id}."
             )
 
-        return HttpResponse("Application created successfully.", status=200) 
+        return HttpResponse(f"Application created successfully with application id: {new_application_id}.", status=200) 
 
 
-    # PATCH -> applications/pk
+    # PATCH -> applications/application_id
     def partial_update(self, request, pk=None): 
         # User should be EMPLOYER
         application_id = request.data.get("applicationId", None)
@@ -156,7 +160,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         return HttpResponse("Application successfully updated.", status=200)
 
 
-    # DELETE -> applications/pk
+    # DELETE -> applications/application_id
     def destroy(self, request, pk=None): 
         # User should be EMPLOYEE
         application_id = pk 

@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
-from urllib.parse import urlparse
 from pathlib import Path
+from urllib.parse import urlparse
+
 
 load_dotenv()
 
@@ -21,11 +23,12 @@ DEBUG = True
 # ALLOWED_HOSTS (When deployed) = ['bihance-django.onrender.com', 'localhost', '127.0.0.1']
 ALLOWED_HOSTS = ["*",]
 
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     'rest_framework', 
     'applications.apps.ApplicationsConfig', 
+    'availabilities.apps.AvailabilitiesConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -131,7 +134,7 @@ AUTH_USER_MODEL = "applications.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'applications.authentication.JWTAuthenticationMiddleware',
+        "bihance.authentication.JWTAuthenticationMiddleware", 
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",        
     ),

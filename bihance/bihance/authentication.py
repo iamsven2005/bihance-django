@@ -2,12 +2,12 @@ import jwt
 import os
 import requests
 
+from applications.models import User
 from django.core.cache import cache
 from dotenv import load_dotenv
 from jwt.algorithms import RSAAlgorithm
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from .models import User
 
 
 load_dotenv()
