@@ -14,13 +14,16 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
     # GET multiple -> availabilities/
     def list(self, request): 
         try:
-            # Try to retrieve the employee record 
+            # Data extraction
             employee_id = request.user.id
+
+            # Try to retrieve the employee record 
             try: 
                 employee_record = User.objects.get(id=employee_id)
             except User.DoesNotExist: 
                 return HttpResponse("No employee corresponding to the availability.", status=404)
             
+            # Retrieve and serialize data
             employee_availabilites = Timings.objects.filter(employee_id=employee_record).order_by("start_time")
             serializer = AvailabilitiesViewSet.serializer_class(employee_availabilites, many=True)
             return JsonResponse(serializer.data, safe=False)
@@ -34,16 +37,17 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
     # POST -> availabilities/
     def create(self, request):
+        # Data extraction
         employee_id = request.user.id
         start_time = request.data.get("startTime", None)
         end_time = request.data.get("endTime", None)
         title = request.data.get("title", None)
 
+        # Data verification
         if start_time is None: 
             return HttpResponse("POST request did not supply start_time to be written.", status=500)
         if end_time is None: 
             return HttpResponse("POST request did not supply end_time to be written.", status=500)
-        
 
         start_time = parse_datetime(start_time)
         end_time = parse_datetime(end_time)
@@ -98,11 +102,13 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             title=title if title else None 
         )
         new_availability_id = new_availability.time_id
+
         return HttpResponse(f"Availability created successfully with availability_id: {new_availability_id}.", status=200) 
 
 
     # DELETE -> availability/availability_id
     def destroy(self, request, pk=None): 
+        # Data extraction
         availability_id = pk
 
          # Try to retrieve the timings record

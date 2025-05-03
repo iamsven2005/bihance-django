@@ -60,7 +60,7 @@ class User(AbstractUser):
 class Job(models.Model):
     job_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="jobId")
     name = models.CharField(max_length=255, db_column="Name")
-    employer_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="id")
+    employer_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="id")
 
     start_date = models.DateTimeField(db_column="StartDate")
     end_date = models.DateTimeField(null=True, blank=True, db_column="EndDate")
@@ -94,9 +94,9 @@ class Job(models.Model):
 
 class Application(models.Model):
     application_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="applicationId")
-    job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
+    job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
     accept = models.IntegerField()
-    employee_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="id")
+    employee_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="id")
     
     bio = models.TextField(null=True, blank=True, db_column="Bio")
     employee_review = models.TextField(null=True, blank=True, db_column="EmployeeReview")

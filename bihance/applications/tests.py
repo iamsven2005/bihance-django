@@ -131,7 +131,6 @@ class ApplicationsAPITest(TestCase):
         self.auth_employer()
         applicationId = Application.objects.first().application_id
         data = {
-            "applicationId": applicationId,
             "newStatus": 3
         }
         response = self.client.patch(f'{self.base_url}{applicationId + "/"}', data, format='json')

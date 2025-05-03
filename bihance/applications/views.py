@@ -13,11 +13,11 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # GET multiple -> applications/
     def list(self, request):
         try:
-            # Extract relevant GET parameters 
-            # Seems like these are supposed to be optional
+            # Data extraction
             application_status = request.query_params.get("applicationStatus", None) 
             user_only = request.query_params.get("userOnly", None) == "true"
-        
+
+            # Different ways to retrieve data    
             if user_only:
                 # User should be EMPLOYEE
                 applications = get_employee_applications(employee_id=request.user.id)
@@ -29,7 +29,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 else: 
                     applications = get_all_applications(user_id=request.user.id, application_status=int(application_status))
 
-            # Use serializer to serialize the selected model rows in applications
+            # Serialize each row/record in the data into a dictionary
             # Return the serialized data! (list of dictionaries)
             serializer = ApplicationsViewSet.serializer_class(applications, many=True)
             return JsonResponse(serializer.data, safe=False)
@@ -48,10 +48,12 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # POST -> applications/
     def create(self, request):
         # User should be EMPLOYEE
+        # Data extraction
         employee_id = request.user.id
         job_id = request.data.get("jobId", None)
         employer_id = request.data.get("employerId", None)
 
+        # Data verification
         if job_id is None: 
             return HttpResponse("POST request did not supply job_id to be written.", status=500)
         if employer_id is None: 
@@ -119,9 +121,11 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # PATCH -> applications/application_id
     def partial_update(self, request, pk=None): 
         # User should be EMPLOYER
-        application_id = request.data.get("applicationId", None)
+        # Data extraction
+        application_id = pk
         new_status = request.data.get("newStatus", None) 
 
+        # Data verification
         if application_id is None: 
             return HttpResponse("PATCH request did not supply application_id to be updated.", status=500)
         if new_status is None: 
@@ -162,7 +166,8 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
     # DELETE -> applications/application_id
     def destroy(self, request, pk=None): 
-        # User should be EMPLOYEE
+        # User should be EMPLOYEE 
+        # Data extraction
         application_id = pk 
 
         # Try to retrieve the application record
