@@ -1,4 +1,4 @@
-## Setting up the backend 🤩
+## Setting up the Backend 🤩
 1. clone this repo
 2. cd bihance-django/bihance
 3. python -m venv venv
