@@ -77,10 +77,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         
         # Check if the applications exists already 
         try:
+            # UNIQUE constraint
             Application.objects.get(
                 job_id=job_record,
                 employee_id=employee_record,
-                employer_id=employer_id
             )  
             # No exception raised, application exists 
             return HttpResponse("Application already exists.", status=500)            
