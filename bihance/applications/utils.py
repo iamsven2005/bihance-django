@@ -1,4 +1,5 @@
 import os 
+
 from .models import Application, User
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection

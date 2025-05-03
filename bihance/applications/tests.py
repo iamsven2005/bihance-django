@@ -47,7 +47,8 @@ class ApplicationsAPITest(TestCase):
         cls.application = Application.objects.create(
             job_id=cls.job,
             accept=1,
-            employee_id=cls.employee
+            employee_id=cls.employee,
+            employer_id=cls.employer.id
         )
 
         # Base url for all applications endpoint

@@ -2,6 +2,7 @@ from .models import Timings
 from .serializers import AvailabilitySerializer
 from applications.models import User
 from django.http import JsonResponse, HttpResponse
+from django.utils.dateparse import parse_datetime
 from rest_framework import permissions, viewsets
 
 
@@ -42,6 +43,10 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             return HttpResponse("POST request did not supply start_time to be written.", status=500)
         if end_time is None: 
             return HttpResponse("POST request did not supply end_time to be written.", status=500)
+        
+
+        start_time = parse_datetime(start_time)
+        end_time = parse_datetime(end_time)
         
         # Try to retrieve the employee record 
         try: 
