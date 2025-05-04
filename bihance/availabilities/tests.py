@@ -2,35 +2,22 @@
 # Negative test cases? 
 
 from .models import Timings
-from applications.models import User
 from datetime import timedelta
-from django.db import connection
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
+from tests.objects import get_employee
+from utils.utils import terminate_current_connections
 
 
-# Close all connections to test database
-# To allow tests to run (kinda) smoothly
-cursor = connection.cursor()
-database_name = 'test_Development'
-cursor.execute(
-    "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity "
-    "WHERE pg_stat_activity.datname = %s AND pid <> pg_backend_pid();", [database_name])
-
+terminate_current_connections()
 
 class AvailabilitiesAPITest(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Performed once before all tests 
-        # Create test employee 
-        cls.employee = User.objects.create(
-            id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
-            email="employee@gmail.com",
-            employee=True
-        )
-
-        # Create availability 
+        # Create test objects 
+        cls.employee = get_employee()
         cls.employee_availability = Timings.objects.create(
             start_time= timezone.now(), 
             end_time= timezone.now() + timedelta(days=69),

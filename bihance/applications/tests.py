@@ -1,57 +1,24 @@
 # Integration testing (models, serializers, utils, views)
 # Negative test cases? 
 
-from .models import Application, Job, User
-from django.db import connection
+from .models import Application
 from django.test import TestCase
-from django.utils import timezone
 from rest_framework.test import APIClient
+from tests.objects import get_employee, get_employer, get_job, get_application
+from utils.utils import terminate_current_connections
 
 
-# Close all connections to test database
-# To allow tests to run (kinda) smoothly
-cursor = connection.cursor()
-database_name = 'test_Development'
-cursor.execute(
-    "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity "
-    "WHERE pg_stat_activity.datname = %s AND pid <> pg_backend_pid();", [database_name])
-
+terminate_current_connections()
 
 class ApplicationsAPITest(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Performed once before all tests
-        # Create test users
-        cls.employee = User.objects.create(
-            id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
-            email="employee@gmail.com",
-            employee=True
-        )
-
-        cls.employer = User.objects.create(
-            id="user_2w9owsASS9O50XlIGdFubAjr8x0",
-            email="employer@gmail.com",
-            employee=False
-        )
-
-        # Create test job
-        cls.job = Job.objects.create(
-            job_id="cma20egbu0007145n7evi1u6d", 
-            name="Forest Guardian & Glitch Hunter",
-            employer_id=cls.employer,
-            start_date=timezone.now(),
-            description="Must be able to transform into a tree, detect glitch entities.",
-            posted_date=timezone.now(),
-            photo_url="https://www.youtube.com/"
-        )
-
-        # Create a test application for test job 
-        cls.application = Application.objects.create(
-            job_id=cls.job,
-            accept=1,
-            employee_id=cls.employee,
-            employer_id=cls.employer.id
-        )
+        # Create test objects
+        cls.employee = get_employee()
+        cls.employer = get_employer()
+        cls.job = get_job()
+        cls.application = get_application()
 
         # Base url for all applications endpoint
         cls.base_url = '/api/applications/'

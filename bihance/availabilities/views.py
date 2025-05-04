@@ -1,5 +1,9 @@
 from .models import Timings
-from .serializers import AvailabilitySerializer
+from .serializers import (
+    AvailabilityCreateInputSerializer,
+    AvailabilitySerializer,
+    AvailabilityDestroyInputSerializer,
+)
 from applications.models import User
 from django.http import JsonResponse, HttpResponse
 from django.utils.dateparse import parse_datetime
@@ -17,29 +21,20 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         # User verification
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
-            return HttpResponse("User must be an employee.", status=500)
+            return HttpResponse("User must be an employee.", status=400)
         
-        try:
-            # Data extraction
-            employee_id = request.user.id
+        # Try to retrieve the employee record 
+        employee_id = request.user.id
+        try: 
+            employee = User.objects.get(id=employee_id)
+        except User.DoesNotExist: 
+            return HttpResponse("No employee corresponding to the availability.", status=404)
+        
+        # Retrieve and serialize data
+        employee_availabilities = Timings.objects.filter(employee_id=employee).order_by("start_time")
+        serializer = AvailabilitySerializer(employee_availabilities, many=True)
+        return JsonResponse(serializer.data, safe=False)
 
-            # Try to retrieve the employee record 
-            try: 
-                employee = User.objects.get(id=employee_id)
-            except User.DoesNotExist: 
-                return HttpResponse("No employee corresponding to the availability.", status=404)
-            
-            # Retrieve and serialize data
-            employee_availabilites = Timings.objects.filter(employee_id=employee).order_by("start_time")
-            serializer = AvailabilitiesViewSet.serializer_class(employee_availabilites, many=True)
-            return JsonResponse(serializer.data, safe=False)
-
-        except TypeError: 
-            return HttpResponse("Failed to serialize availabilities to JSON. Possible invalid data format.", status=500)
-        
-        except Exception: 
-            return HttpResponse("GET request for all availabilities failed.", status=500)
-        
 
     # POST -> availabilities/
     def create(self, request):
@@ -47,25 +42,21 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
             return HttpResponse("User must be an employee.", status=500)
-
-        # Data extraction
-        employee_id = request.user.id
-        start_time = request.data.get("startTime", None)
-        end_time = request.data.get("endTime", None)
-        title = request.data.get("title", None)
-
-        # Data verification
-        if start_time is None: 
-            return HttpResponse("POST request did not supply start_time to be written.", status=500)
-        if end_time is None: 
-            return HttpResponse("POST request did not supply end_time to be written.", status=500)
-
-        start_time = parse_datetime(start_time)
-        end_time = parse_datetime(end_time)
         
+        # Input validation
+        input_serializer = AvailabilityCreateInputSerializer(data=request.data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
+            
+        serialized_data = input_serializer.validated_data
+        start_time = serialized_data["startTime"]
+        end_time = serialized_data["endTime"]
+        title = serialized_data.get("title")
+    
         # Try to retrieve the employee record 
+        employee_id = request.user.id
         try: 
-            employee_record = User.objects.get(id=employee_id)
+            employee = User.objects.get(id=employee_id)
         except User.DoesNotExist: 
             return HttpResponse("No employee corresponding to the availability.", status=404)
 
@@ -73,22 +64,18 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         try: 
             # UNIQUE constraint
             Timings.objects.get(
-                employee_id=employee_record,
+                employee_id=employee,
                 start_time=start_time, 
                 end_time=end_time
             )
             # No exception raised, availability exists 
-            return HttpResponse("Availability already exists.", status=500)     
+            return HttpResponse("Availability already exists.", status=400)     
         
         except Timings.DoesNotExist:  
             pass
-
-        # Check if the end time comes before the start time 
-        if end_time < start_time:
-            return HttpResponse(f"End time {end_time} cannot come before start time {start_time}", status=500)
-        
+ 
         # Check if the availability start-end time overlaps with existing ones
-        current_availabilities = Timings.objects.filter(employee_id=employee_record)
+        current_availabilities = Timings.objects.filter(employee_id=employee)
         has_overlap = False
         other_start_time = None
         other_end_time = None 
@@ -103,11 +90,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
                 break 
         
         if has_overlap: 
-            return HttpResponse(f"New availability from {start_time} to {end_time} overlaps with current availability from {other_start_time} to {other_end_time}", status=500)    
+            return HttpResponse(f"New availability from {start_time} to {end_time} overlaps with current availability from {other_start_time} to {other_end_time}.", status=400)    
 
         # Create the availability 
         new_availability = Timings.objects.create(
-            employee_id=employee_record,
+            employee_id=employee,
             start_time=start_time, 
             end_time=end_time,
             title=title if title else None 
@@ -124,10 +111,18 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         if not is_employee: 
             return HttpResponse("User must be an employee.", status=500)
         
-        # Data extraction
-        availability_id = pk
-
-         # Try to retrieve the timings record
+        # Input validation
+        input_data = {
+            "availabilityId": pk
+        }
+        input_serializer = AvailabilityDestroyInputSerializer(data=input_data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
+        
+        serialized_data = input_serializer.validated_data
+        availability_id = serialized_data["availabilityId"]
+    
+        # Try to retrieve the timings record
         try:
             availability_to_delete = Timings.objects.get(time_id=availability_id)
             availability_to_delete.delete()

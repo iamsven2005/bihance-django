@@ -1,9 +1,11 @@
 from .models import Message, MessageFile
-from .serializers import MessageSerializer, MessageFileSerializer
-from .utils import get_sender_and_application, validate_sender
+from .serializers import (   
+    MessageListInputSerializer, MessageSerializer, MessageFileSerializer, 
+    MessageCreateInputSerializer, MessagePartialUpdateInputSerializer, MessageDestroyInputSerializer
+)
+from .utils import get_user_and_application, validate_user_in_application, validate_user_is_sender
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 from rest_framework import permissions, viewsets
 
 
@@ -14,73 +16,77 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_input_serializer_class(self): 
+        match self.action:
+            case "list":
+                return MessageListInputSerializer
+            case "create":
+                return MessageCreateInputSerializer
+            case "partial_update":
+                return MessagePartialUpdateInputSerializer
+            case "destroy":
+                return MessageDestroyInputSerializer
+            case _:
+                raise ValueError("Failed to get valid input serializer class.")
+
+
     # GET multiple -> messages/
     def list(self, request): 
-        try:
-            # Data extraction
-            since = request.query_params.get("since", None)
-            application_id = request.query_params.get("applicationId", None)
-
-            # Data checking 
-            if application_id is None:
-                return HttpResponse("GET request did not supply application id.", status=500)
-
-            # Sender verification
-            # Here, sender is more like who is making the GET request            
-            sender, application = get_sender_and_application(sender_id=request.user.id, application_id=application_id)
-            validate_sender(sender, application)
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_serializer = input_serializer_class(data=request.query_params)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
             
-            # Different ways to retrive data
-            if since: 
-                since = parse_datetime(since)
-                messages = Message.objects.filter(date__gte=since, application_id=application_id)
-            else: 
-                messages = Message.objects.filter(application_id=application_id)
-                
-            message_files = MessageFile.objects.filter(message_id__in=messages)
+        serialized_data = input_serializer.validated_data
+        application_id = serialized_data["applicationId"]
+        since = serialized_data.get("since")
 
-            # Packing serialized data together 
-            messages_serializer = MessageSerializer(messages, many=True)
-            message_files_serializer = MessageFileSerializer(message_files, many=True)
-            combined_data = {
-                "message": messages_serializer.data,
-                "message_files": message_files_serializer.data
-            }
-            return JsonResponse(combined_data, safe=False)
+        # User verification
+        user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
+        is_valid = validate_user_in_application(user, application)
+        if not is_valid: 
+            return HttpResponse("This user is not the employee or employer in the application.", status=403)
+            
+        # Different ways to retrive data
+        if since: 
+            messages = Message.objects.filter(date__gte=since, application_id=application_id)
+        else: 
+            messages = Message.objects.filter(application_id=application_id)
+            
+        message_files = MessageFile.objects.filter(message_id__in=messages)
 
-        except TypeError:
-            return HttpResponse("Failed to serialize messages to JSON. Possible invalid data format.", status=500)
-    
-        except Exception:
-            if since: 
-                return HttpResponse(f"GET request for messsages since {since} failed.", status=500)        
-            else: 
-                return HttpResponse("GET request for all messages failed.", status=500)
+        # Packing serialized data together 
+        messages_serializer = MessageSerializer(messages, many=True)
+        message_files_serializer = MessageFileSerializer(message_files, many=True)  
+        combined_data = {
+            "messages": messages_serializer.data,
+            "message_files": message_files_serializer.data
+        }
 
+        return JsonResponse(combined_data, safe=False)
+        
 
     # POST -> messages/
     def create(self, request):
-        # Data extraction
-        content = request.data.get("content", None)
-        application_id = request.data.get("applicationId", None) 
-        reply_to_id = request.data.get("replyToId", None)
-        file_url = request.data.get("fileUrl", None)
-        file_name = request.data.get("fileName", None)
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_serializer = input_serializer_class(data=request.data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
 
-        # Data checking
-        if content is None: 
-            return HttpResponse("POST request did not supply message content.", status=500)
-        if not isinstance(content, str) or content.strip() == "":
-            return HttpResponse("POST request came with empty message content.", status=500)
-        
-        if application_id is None: 
-            return HttpResponse("POST request did not supply application id.", status=500)
-        
-        # Sender verification
-        sender, application = get_sender_and_application(sender_id=request.user.id, application_id=application_id)
-        is_valid = validate_sender(sender, application)
+        serialized_data = input_serializer.validated_data
+        content = serialized_data.get("content")
+        application_id = serialized_data["applicationId"]
+        reply_to_id = serialized_data.get("replyToId")
+        file_url = serialized_data.get("fileUrl")
+        file_name = serialized_data.get("fileName")
+    
+        # User verification
+        user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
+        is_valid = validate_user_in_application(user, application)
         if not is_valid: 
-            return HttpResponse("This sender is not the employee or employer in the application.", status=403)
+            return HttpResponse("This user is not the employee or employer in the application.", status=403)
         
         # Retrive the reply_to_message (if exists)
         if reply_to_id:
@@ -90,19 +96,19 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return HttpResponse("No reply-to message corresponding to the message.", status=404)
             
         # Create the message record 
-        message = Message.create(
-            content=content.strip(), 
+        message = Message.objects.create(
+            content=content if content else "", 
             application_id=application,
-            sender_id=sender,
+            sender_id=user,
             reply_to_id=reply_to_message if reply_to_id else None 
         )
         message_id = message.message_id
 
-        # Create the message file 
+        # Create the message file (if applicable)
         if file_name: 
-            message_file = MessageFile.create(
+            message_file = MessageFile.objects.create(
                 message_id=message,
-                sender_id=sender,
+                sender_id=user,
                 file_url=file_url, 
                 file_name=file_name,
                 file_type=file_name.split(".")[-1] if "." in file_name else "unknown",
@@ -118,32 +124,30 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     # PATCH -> messages/message_id
     def partial_update(self, request, pk=None):
-        # Data extraction
-        message_id = pk
-        new_content = request.data.get("newContent", None)
-        application_id = request.data.get("applicationId", None) 
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_data = request.data.copy()
+        input_data["messageId"] = pk
+        input_serializer = input_serializer_class(data=input_data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
 
-        # Data checking
-        if new_content is None: 
-            return HttpResponse("PATCH request did not supply message content.", status=500)
-        if not isinstance(new_content, str) or new_content.strip() == "":
-            return HttpResponse("PATCH request came with empty message content.", status=500)
-        
-        if application_id is None: 
-            return HttpResponse("PATCH request did not supply application id.", status=500)
-        
-        # Sender verification
-        # Here, sender is more like who is making the PATCH request          
-        sender, application = get_sender_and_application(sender_id=request.user.id, application_id=application_id)
-        is_valid = validate_sender(sender, application)
-        if not is_valid: 
-            return HttpResponse("This sender is not the employee or employer in the application.", status=403)
+        serialized_data = input_serializer.validated_data
+        message_id = serialized_data["messageId"]
+        new_content = serialized_data["newContent"]
+        application_id = serialized_data["applicationId"]
 
         # Try to retrieve the message record
         try: 
             message = Message.objects.get(message_id=message_id)
         except Message.DoesNotExist: 
             return HttpResponse("Message to be edited not found.", status=404)
+        
+        # User verification
+        user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
+        is_valid = validate_user_in_application(user, application) and validate_user_is_sender(user, message)
+        if not is_valid: 
+            return HttpResponse("This user is not the owner of the message.", status=403)
 
         # Modify the message 
         message.content = new_content.strip()
@@ -156,23 +160,31 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     # DELETE -> messages/message_id
     def destroy(self, request, pk=None):
-        # Data extraction
-        message_id = pk
-        sender_id = request.user.id
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_data = {
+            "messageId": pk
+        }
+        input_serializer = input_serializer_class(data=input_data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
 
+        serialized_data = input_serializer.validated_data
+        message_id = serialized_data["messageId"]
+        
         # Try to retrieve the message record
         try: 
             message = Message.objects.get(message_id=message_id)
         except Message.DoesNotExist: 
             return HttpResponse("Message to be deleted not found.", status=404)
         
-        # Sender verification
-        # Here, sender is more like who is making the DELETE request
+        # User verification
+        user_id = request.user.id
         application_id = message.application_id.application_id
-        sender, application = get_sender_and_application(sender_id=sender_id, application_id=application_id)
-        is_valid = validate_sender(sender, application)
+        user, application = get_user_and_application(user_id=user_id, application_id=application_id)
+        is_valid = validate_user_in_application(user, application) and validate_user_is_sender(user, message)
         if not is_valid: 
-            return HttpResponse("This sender is not the employee or employer in the application.", status=403)
+            return HttpResponse("This user is not owner of the message.", status=403)
 
         # Perform soft delete of message 
         message.content = "[This message has been deleted]"

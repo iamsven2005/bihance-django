@@ -33,3 +33,22 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'application_id', 'job', 'employee', 'accept',
             'bio', 'employee_review', 'employer_review', 'employer_id'
         ]
+
+
+class ApplicationListInputSerializer(serializers.Serializer):
+    applicationStatus = serializers.IntegerField(required=False)
+    userOnly = serializers.BooleanField(required=False)
+
+
+class ApplicationCreateInputSerializer(serializers.Serializer):
+    jobId = serializers.CharField() 
+    employerId = serializers.CharField()
+
+
+class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
+    applicationId = serializers.CharField()
+    newStatus = serializers.IntegerField()
+
+
+class ApplicationDestroyInputSerializer(serializers.Serializer):
+    applicationId = serializers.CharField()

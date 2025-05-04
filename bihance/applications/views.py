@@ -1,5 +1,11 @@
 from .models import Application, User, Job
-from .serializers import ApplicationSerializer
+from .serializers import (
+    ApplicationSerializer,
+    ApplicationListInputSerializer,
+    ApplicationCreateInputSerializer,
+    ApplicationPartialUpdateInputSerializer,
+    ApplicationDestroyInputSerializer
+)
 from .utils import get_employee_applications, get_all_applications, send_email
 from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions, viewsets
@@ -11,61 +17,69 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     serializer_class = ApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_input_serializer_class(self): 
+        match self.action:
+            case "list":
+                return ApplicationListInputSerializer
+            case "create":
+                return ApplicationCreateInputSerializer
+            case "partial_update":
+                return ApplicationPartialUpdateInputSerializer
+            case "destroy":
+                return ApplicationDestroyInputSerializer
+            case _:
+                raise ValueError("Failed to get valid input serializer class.")
+
+
     # GET multiple -> applications/
     def list(self, request):
-        try:
-            # Data extraction
-            application_status = request.query_params.get("applicationStatus", None) 
-            user_only = request.query_params.get("userOnly", None) == "true"
-
-            # Different ways to retrieve data    
-            if user_only:
-                # User should be EMPLOYEE
-                is_employee = check_is_employee(request.user.id)
-                if not is_employee: 
-                    return HttpResponse("User must be an employee.", status=500)                
-                applications = get_employee_applications(employee_id=request.user.id)
-
-            else:
-                # User can be either EMPLOYEE or EMPLOYER
-                if application_status is None: 
-                    applications = get_all_applications(user_id=request.user.id, application_status=None)
-                else: 
-                    applications = get_all_applications(user_id=request.user.id, application_status=int(application_status))
-
-            # Serialize each row/record in the data into a dictionary
-            # Return the serialized data! (list of dictionaries)
-            serializer = ApplicationsViewSet.serializer_class(applications, many=True)
-            return JsonResponse(serializer.data, safe=False)
-        
-        except TypeError:
-            return HttpResponse("Failed to serialize applications to JSON. Possible invalid data format.", status=500)
-    
-        except Exception:
-            if user_only: 
-                return HttpResponse("GET request for user only applications failed.", status=500)
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_serializer = input_serializer_class(data=request.query_params)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
             
-            else: 
-                return HttpResponse("GET request for all applications failed.", status=500)
+        serialized_data = input_serializer.validated_data
+        application_status = serialized_data.get("applicationStatus")
+        user_only = serialized_data.get("userOnly")
 
-    
+        # Different ways to retrieve data    
+        if user_only:
+            # User should be EMPLOYEE
+            is_employee = check_is_employee(request.user.id)
+            if not is_employee: 
+                return HttpResponse("User must be an employee.", status=400)                
+            applications = get_employee_applications(employee_id=request.user.id)
+
+        else:
+            # User can be either EMPLOYEE or EMPLOYER
+            if application_status is None: 
+                applications = get_all_applications(user_id=request.user.id, application_status=None)
+            else: 
+                applications = get_all_applications(user_id=request.user.id, application_status=int(application_status))
+
+        # Serialize each row/record in the data into a dictionary
+        # Return the serialized data! (list of dictionaries)
+        serializer = ApplicationSerializer(applications, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+
     # POST -> applications/
     def create(self, request):
         # User should be EMPLOYEE
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
-            return HttpResponse("User must be an employee.", status=500)          
+            return HttpResponse("User must be an employee.", status=400)
 
-        # Data extraction
-        employee_id = request.user.id
-        job_id = request.data.get("jobId", None)
-        employer_id = request.data.get("employerId", None)
-
-        # Data verification
-        if job_id is None: 
-            return HttpResponse("POST request did not supply job_id to be written.", status=500)
-        if employer_id is None: 
-            return HttpResponse("POST request did not supply employer_id to be written.", status=500)
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_serializer = input_serializer_class(data=request.data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
+        
+        serialized_data = input_serializer.validated_data
+        job_id = serialized_data["jobId"]
+        employer_id = serialized_data["employerId"]
         
         # Try to retrieve the job record 
         try: 
@@ -74,6 +88,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             return HttpResponse(f"No job corresponding to the application.", status=404)
         
         # Try to retrieve the employee record 
+        employee_id = request.user.id
         try: 
             employee_record = User.objects.get(id=employee_id)
         except User.DoesNotExist:
@@ -93,7 +108,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 employee_id=employee_record,
             )  
             # No exception raised, application exists 
-            return HttpResponse("Application already exists.", status=500)            
+            return HttpResponse("Application already exists.", status=400)            
         
         except Application.DoesNotExist: 
             pass
@@ -131,17 +146,21 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         # User should be EMPLOYER
         is_employer = check_is_employer(request.user.id)
         if not is_employer: 
-            return HttpResponse("User must be an employer.", status=500)  
-
-        # Data extraction
-        application_id = pk
-        new_status = request.data.get("newStatus", None) 
-
-        # Data verification
-        if application_id is None: 
-            return HttpResponse("PATCH request did not supply application_id to be updated.", status=500)
-        if new_status is None: 
-            return HttpResponse("PATCH request did not supply new application status.", status=500)
+            return HttpResponse("User must be an employer.", status=400)  
+        
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_data = {
+            "applicationId": pk,
+            "newStatus": request.data.get("newStatus")
+        }
+        input_serializer = input_serializer_class(data=input_data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
+        
+        serialized_data = input_serializer.validated_data
+        application_id = serialized_data["applicationId"]
+        new_status = serialized_data["newStatus"]
         
         # Try to retrieve the application record 
         try: 
@@ -181,10 +200,19 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         # User should be EMPLOYEE 
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
-            return HttpResponse("User must be an employee.", status=500)  
+            return HttpResponse("User must be an employee.", status=400)  
         
-        # Data extraction
-        application_id = pk 
+        # Input validation
+        input_serializer_class = self.get_input_serializer_class()
+        input_data = {
+            "applicationId": pk,
+        }
+        input_serializer = input_serializer_class(data=input_data)
+        if not input_serializer.is_valid(): 
+            return HttpResponse(input_serializer.errors, status=400)
+        
+        serialized_data = input_serializer.validated_data
+        application_id = serialized_data["applicationId"]
 
         # Try to retrieve the application record
         try:
@@ -196,7 +224,6 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         except Application.DoesNotExist:
             return HttpResponse(f'Application with {application_id} not found.', status=404)
         
-       
         # Send confirmation email to EMPLOYEE
         if request.user.email:
             send_email(
