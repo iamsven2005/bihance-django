@@ -143,56 +143,71 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
     # PATCH -> applications/application_id
     def partial_update(self, request, pk=None): 
-        # User should be EMPLOYER
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer: 
-            return HttpResponse("User must be an employer.", status=400)  
-        
         # Input validation
         input_serializer_class = self.get_input_serializer_class()
-        input_data = {
-            "applicationId": pk,
-            "newStatus": request.data.get("newStatus")
-        }
+        input_data = request.data.copy()
+        input_data["applicationId"] = pk
         input_serializer = input_serializer_class(data=input_data)
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
         serialized_data = input_serializer.validated_data
         application_id = serialized_data["applicationId"]
-        new_status = serialized_data["newStatus"]
+        new_status = serialized_data.get("newStatus")
+        new_bio = serialized_data.get("newBio")
         
-        # Try to retrieve the application record 
-        try: 
-            application_to_update = Application.objects.get(application_id=application_id)
+        if new_status:
+            assert(new_bio is None)
 
-            # Quirky Django behaviour 
-            # When accessing FK field, doesnt give FK value, gives the entire PK object!
-            job_id = application_to_update.job_id.job_id        
-            job_name = Job.objects.get(job_id=job_id).name
-            employee_id = application_to_update.employee_id.id
-            employee_email = User.objects.get(id=employee_id).email
+            # User should be EMPLOYER
+            is_employer = check_is_employer(request.user.id)
+            if not is_employer: 
+                return HttpResponse("User must be an employer.", status=400)  
+            
+            # Try to retrieve the application record     
+            try: 
+                application_to_update = Application.objects.get(application_id=application_id)
 
-            application_to_update.accept = new_status
-            application_to_update.save()
+                # Quirky Django behaviour 
+                # When accessing FK field, doesnt give FK value, gives the entire PK object!
+                job_id = application_to_update.job_id.job_id        
+                job_name = Job.objects.get(job_id=job_id).name
+                employee_id = application_to_update.employee_id.id
+                employee_email = User.objects.get(id=employee_id).email
 
-        except Application.DoesNotExist: 
-            return HttpResponse(f"Application with {application_id} not found.", status=404)
+                application_to_update.accept = new_status
+                application_to_update.save()
+
+            except Application.DoesNotExist: 
+                return HttpResponse(f"Application with {application_id} not found.", status=404)
+            
+            # Send confirmation email to EMPLOYEE
+            if new_status == 2:
+                email_message = f"Congratulations, you have been accepted for {job_name}."
+            else: 
+                email_message = f"Sorry, you have been rejected from {job_name}."
+
+            if employee_email: 
+                send_email(
+                    recipient_list=[employee_email],
+                    subject="Job Application Outcome",
+                    message=email_message
+                )
+            return HttpResponse("Application status successfully updated.", status=200)
         
-        # Send confirmation email to EMPLOYEE
-        if new_status == 2:
-            email_message = f"Congratulations, you have been accepted for {job_name}."
         else: 
-            email_message = f"Sorry, you have been rejected from {job_name}."
+            assert(new_bio is not None)
 
-        if employee_email: 
-            send_email(
-                recipient_list=[employee_email],
-                subject="Job Application Outcome",
-                message=email_message
-            )
+            # Try to retrieve the application record     
+            try: 
+                application_to_update = Application.objects.get(application_id=application_id)
+                application_to_update.bio = new_bio
+                application_to_update.save()
 
-        return HttpResponse("Application successfully updated.", status=200)
+            except Application.DoesNotExist: 
+                return HttpResponse(f"Application with {application_id} not found.", status=404)
+                
+            return HttpResponse("Application bio successfully updated.", status=200)
 
 
     # DELETE -> applications/application_id
