@@ -4,6 +4,7 @@ from applications.models import User
 from django.http import JsonResponse, HttpResponse
 from django.utils.dateparse import parse_datetime
 from rest_framework import permissions, viewsets
+from utils.utils import check_is_employee
 
 
 class AvailabilitiesViewSet(viewsets.ModelViewSet): 
@@ -13,18 +14,23 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
     # GET multiple -> availabilities/
     def list(self, request): 
+        # User verification
+        is_employee = check_is_employee(request.user.id)
+        if not is_employee: 
+            return HttpResponse("User must be an employee.", status=500)
+        
         try:
             # Data extraction
             employee_id = request.user.id
 
             # Try to retrieve the employee record 
             try: 
-                employee_record = User.objects.get(id=employee_id)
+                employee = User.objects.get(id=employee_id)
             except User.DoesNotExist: 
                 return HttpResponse("No employee corresponding to the availability.", status=404)
             
             # Retrieve and serialize data
-            employee_availabilites = Timings.objects.filter(employee_id=employee_record).order_by("start_time")
+            employee_availabilites = Timings.objects.filter(employee_id=employee).order_by("start_time")
             serializer = AvailabilitiesViewSet.serializer_class(employee_availabilites, many=True)
             return JsonResponse(serializer.data, safe=False)
 
@@ -37,6 +43,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
     # POST -> availabilities/
     def create(self, request):
+        # User verification
+        is_employee = check_is_employee(request.user.id)
+        if not is_employee: 
+            return HttpResponse("User must be an employee.", status=500)
+
         # Data extraction
         employee_id = request.user.id
         start_time = request.data.get("startTime", None)
@@ -108,6 +119,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
     # DELETE -> availability/availability_id
     def destroy(self, request, pk=None): 
+        # User verification
+        is_employee = check_is_employee(request.user.id)
+        if not is_employee: 
+            return HttpResponse("User must be an employee.", status=500)
+        
         # Data extraction
         availability_id = pk
 

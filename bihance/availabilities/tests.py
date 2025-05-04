@@ -26,7 +26,8 @@ class AvailabilitiesAPITest(TestCase):
         # Create test employee 
         cls.employee = User.objects.create(
             id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
-            email="employee@gmail.com"
+            email="employee@gmail.com",
+            employee=True
         )
 
         # Create availability 

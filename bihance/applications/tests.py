@@ -24,12 +24,14 @@ class ApplicationsAPITest(TestCase):
         # Create test users
         cls.employee = User.objects.create(
             id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
-            email="employee@gmail.com"
+            email="employee@gmail.com",
+            employee=True
         )
 
         cls.employer = User.objects.create(
             id="user_2w9owsASS9O50XlIGdFubAjr8x0",
-            email="employer@gmail.com" 
+            email="employer@gmail.com",
+            employee=False
         )
 
         # Create test job

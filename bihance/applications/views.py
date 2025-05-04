@@ -1,8 +1,9 @@
 from .models import Application, User, Job
 from .serializers import ApplicationSerializer
 from .utils import get_employee_applications, get_all_applications, send_email
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions, viewsets
+from utils.utils import check_is_employee, check_is_employer
 
 
 class ApplicationsViewSet(viewsets.ModelViewSet):
@@ -20,6 +21,9 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             # Different ways to retrieve data    
             if user_only:
                 # User should be EMPLOYEE
+                is_employee = check_is_employee(request.user.id)
+                if not is_employee: 
+                    return HttpResponse("User must be an employee.", status=500)                
                 applications = get_employee_applications(employee_id=request.user.id)
 
             else:
@@ -48,6 +52,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # POST -> applications/
     def create(self, request):
         # User should be EMPLOYEE
+        is_employee = check_is_employee(request.user.id)
+        if not is_employee: 
+            return HttpResponse("User must be an employee.", status=500)          
+
         # Data extraction
         employee_id = request.user.id
         job_id = request.data.get("jobId", None)
@@ -121,6 +129,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # PATCH -> applications/application_id
     def partial_update(self, request, pk=None): 
         # User should be EMPLOYER
+        is_employer = check_is_employer(request.user.id)
+        if not is_employer: 
+            return HttpResponse("User must be an employer.", status=500)  
+
         # Data extraction
         application_id = pk
         new_status = request.data.get("newStatus", None) 
@@ -167,6 +179,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     # DELETE -> applications/application_id
     def destroy(self, request, pk=None): 
         # User should be EMPLOYEE 
+        is_employee = check_is_employee(request.user.id)
+        if not is_employee: 
+            return HttpResponse("User must be an employee.", status=500)  
+        
         # Data extraction
         application_id = pk 
 
