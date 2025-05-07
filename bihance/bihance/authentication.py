@@ -103,7 +103,7 @@ class ClerkSDK:
     def get_jwks(self): 
         jwks_data = cache.get(CACHE_KEY)
         if not jwks_data:
-            api_endpoint = f'{os.getenv('CLERK_FRONTEND_API_URL')}/.well-known/jwks.json'
+            api_endpoint = f"{os.getenv('CLERK_FRONTEND_API_URL')}/.well-known/jwks.json"
             response = requests.get(api_endpoint)
             
             # 200 OK
