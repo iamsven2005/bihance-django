@@ -81,7 +81,7 @@ class ClerkSDK:
     # Second element -> boolean found, if user info was found or not
     def fetch_user_info(self, user_id: str): 
         api_endpoint = f'{CLERK_API_URL}/users/{user_id}'
-        headers = {"Authorization": f'Bearer {os.getenv('CLERK_SECRET_KEY')}'}
+        headers = {"Authorization": f"Bearer {os.getenv('CLERK_SECRET_KEY')}"}
         response = requests.get(api_endpoint, headers=headers)
 
         # 200 OK
