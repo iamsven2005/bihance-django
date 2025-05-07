@@ -11,8 +11,10 @@
    - CLERK_SECRET_KEY
    - RESEND_API_KEY
    - RESEND_FROM_EMAIL
+   - DEBUG
+   - ALLOWED_HOSTS
+   - SECRET_KEY (for Django) 
 
 8. python manage.py makemigrations
 9. python manage.py migrate
-10. python manage.py runserver 0.0.0.0:8000
-
+10. python manage.py runserver
