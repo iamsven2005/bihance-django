@@ -70,7 +70,10 @@ WSGI_APPLICATION = 'bihance.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
-    'default': dj_database_url.parse(os.getenv("DATABASE_URL"), conn_max_age=600)
+    'default': dj_database_url.config(
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600
+    )
     # 'default': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': tmpPostgres.path.replace('/', ''),
