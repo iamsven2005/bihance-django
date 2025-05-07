@@ -17,5 +17,7 @@ class Timings(models.Model):
             models.Index(fields=['employee_id']),
         ]
 
+        unique_together = (('start_time', 'end_time', "employee_id"))
+
 
         

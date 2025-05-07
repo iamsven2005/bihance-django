@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'rest_framework', 
     'applications.apps.ApplicationsConfig', 
     'availabilities.apps.AvailabilitiesConfig',
+    'companies.apps.CompaniesConfig',
     'message.apps.MessageConfig',
     'django.contrib.admin',
     'django.contrib.auth',
