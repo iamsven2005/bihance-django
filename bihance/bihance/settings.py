@@ -1,27 +1,25 @@
+import dj_database_url
 import os
 
 from dotenv import load_dotenv
 from pathlib import Path
-from urllib.parse import urlparse
 
-
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^6k46i6&49f@8hg-&juek)6-cn66mg2jqlsm9jzzc+7@hi5))k'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "0").lower() in ['true', 't', '1']
 
-# ALLOWED_HOSTS (When deployed) = ['bihance-django.onrender.com', 'localhost', '127.0.0.1']
-ALLOWED_HOSTS = ["*",]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(" | ")
 
 
 # Application definition
@@ -71,20 +69,18 @@ WSGI_APPLICATION = 'bihance.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
-        'USER': tmpPostgres.username,
-        'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
-        'PORT': 5432,
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-    }
+    'default': dj_database_url.parse(os.getenv("DATABASE_URL"), conn_max_age=600)
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': tmpPostgres.path.replace('/', ''),
+    #     'USER': tmpPostgres.username,
+    #     'PASSWORD': tmpPostgres.password,
+    #     'HOST': tmpPostgres.hostname,
+    #     'PORT': 5432,
+    #     'OPTIONS': {
+    #         'sslmode': 'require',
+    #     },
 }
 
 

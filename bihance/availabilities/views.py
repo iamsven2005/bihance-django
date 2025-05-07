@@ -41,7 +41,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         # User verification
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
-            return HttpResponse("User must be an employee.", status=500)
+            return HttpResponse("User must be an employee.", status=400)
         
         # Input validation
         input_serializer = AvailabilityCreateInputSerializer(data=request.data)
@@ -109,7 +109,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         # User verification
         is_employee = check_is_employee(request.user.id)
         if not is_employee: 
-            return HttpResponse("User must be an employee.", status=500)
+            return HttpResponse("User must be an employee.", status=400)
         
         # Input validation
         input_data = {
