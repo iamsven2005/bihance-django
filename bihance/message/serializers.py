@@ -61,12 +61,6 @@ class MessageCreateInputSerializer(serializers.Serializer):
     fileUrl = serializers.URLField(required=False)
     fileName = serializers.CharField(required=False)
 
-    def validate_content(self, content):
-        processed_content = content.strip()
-        if not processed_content:
-            raise serializers.ValidationError("Message content cannot be empty.")
-        return processed_content
-
     def validate(self, data):
         detect_extra_fields(self.initial_data, self.fields)
         content = data.get("content")
@@ -77,6 +71,8 @@ class MessageCreateInputSerializer(serializers.Serializer):
             raise serializers.ValidationError("Either text or file must be included in the message.")
         if file_name and not file_url:
             raise serializers.ValidationError("File URL must be provided if file name is given.")        
+        if file_url and not file_name: 
+            raise serializers.ValidationError("File name must be provided if file URL is given.")        
         return data
 
 
@@ -85,12 +81,6 @@ class MessagePartialUpdateInputSerializer(serializers.Serializer):
     newContent = serializers.CharField()
     applicationId = serializers.UUIDField()
 
-    def validate_newContent(self, new_content):
-        processed_content = new_content.strip()
-        if not processed_content:
-            raise serializers.ValidationError("Message content cannot be empty.")
-        return processed_content
-    
     def validate(self, data): 
         detect_extra_fields(self.initial_data, self.fields)
         return data

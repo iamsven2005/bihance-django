@@ -1,4 +1,4 @@
-from .serializers import EmployerCreateInputSerializer
+from .serializers import EmployerCreateInputSerializer, EmployerPartialUpdateInputSerializer
 from applications.models import User
 from companies.models import EmployerProfile
 from django.http import HttpResponse
@@ -64,7 +64,7 @@ class EmployerViewSet(viewsets.ViewSet):
             talent_needs=talent_needs if talent_needs else None,
             work_style=work_style if work_style else None,
             hiring_timeline=hiring_timeline if hiring_timeline else None,
-            featured_partner=featured_partner if featured_partner else None,
+            featured_partner=featured_partner if featured_partner else False,
             image_url=image_url if image_url else None
         )
         company_id = employer_company.company_id
@@ -86,7 +86,7 @@ class EmployerViewSet(viewsets.ViewSet):
             return HttpResponse("Employer profile does not exist.", status=400)
         
         # Input validation
-        serializer = EmployerCreateInputSerializer(data=request.data)
+        serializer = EmployerPartialUpdateInputSerializer(data=request.data)
         if not serializer.is_valid(): 
             return HttpResponse(serializer.errors, status=400)
         
@@ -106,7 +106,6 @@ class EmployerViewSet(viewsets.ViewSet):
             "featuredPartner": "featured_partner",
             "imageUrl": "image_url",
         }       
-
         for key, value in validated_data.items(): 
             model_field = data_key_to_model_field_mapping[key]
             setattr(employer_company, model_field, value)

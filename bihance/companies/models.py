@@ -10,7 +10,7 @@ class EmployerProfile(models.Model):
     company_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="id")
     employer_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='userId')  
     company_name = models.TextField(db_column='companyName')  
-    company_website = models.TextField(db_column='companyWebsite')  
+    company_website = models.URLField(db_column='companyWebsite')  
     contact_name = models.TextField(null=True, blank=True, db_column='contactName')  
     contact_role = models.TextField(null=True, blank=True, db_column='contactRole')  
     company_size = models.TextField(null=True, blank=True, db_column='companySize')  
