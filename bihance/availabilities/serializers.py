@@ -1,6 +1,7 @@
 from .models import Timings
 from applications.serializers import UserSerializer
 from rest_framework import serializers
+from utils.utils import detect_extra_fields
 
 
 class AvailabilitySerializer(serializers.ModelSerializer):
@@ -19,12 +20,18 @@ class AvailabilityCreateInputSerializer(serializers.Serializer):
     title = serializers.CharField(required=False)
 
     def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        
         if data['startTime'] > data['endTime']: 
-            raise serializers.ValidationError("File URL must be provided if file name is given.") 
+            raise serializers.ValidationError("Start time cannot exceed end time.") 
         return data
 
 
 class AvailabilityDestroyInputSerializer(serializers.Serializer):
     availabilityId = serializers.UUIDField()
+
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
 
 

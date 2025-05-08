@@ -6,7 +6,6 @@ from .serializers import (
 )
 from applications.models import User
 from django.http import JsonResponse, HttpResponse
-from django.utils.dateparse import parse_datetime
 from rest_framework import permissions, viewsets
 from utils.utils import check_is_employee
 
@@ -48,10 +47,10 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
             
-        serialized_data = input_serializer.validated_data
-        start_time = serialized_data["startTime"]
-        end_time = serialized_data["endTime"]
-        title = serialized_data.get("title")
+        validated_data = input_serializer.validated_data
+        start_time = validated_data["startTime"]
+        end_time = validated_data["endTime"]
+        title = validated_data.get("title")
     
         # Try to retrieve the employee record 
         employee_id = request.user.id
@@ -119,8 +118,8 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
-        serialized_data = input_serializer.validated_data
-        availability_id = serialized_data["availabilityId"]
+        validated_data = input_serializer.validated_data
+        availability_id = validated_data["availabilityId"]
     
         # Try to retrieve the timings record
         try:

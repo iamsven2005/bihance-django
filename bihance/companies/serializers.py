@@ -12,7 +12,7 @@ class EmployerProfileSerializer(serializers.ModelSerializer):
             "company_id", "employee", "company_name", "company_website",
             "contact_name", "contact_role", "company_size", "industry",
             "talent_needs", "work_style", "hiring_timeline", "featured_partner", 
-            "created_at", "updated_at", "image",
+            "created_at", "updated_at", "image_url",
         ]
 
 

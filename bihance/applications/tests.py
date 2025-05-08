@@ -100,7 +100,7 @@ class ApplicationsAPITest(TestCase):
         self.auth_employer()
         applicationId = Application.objects.first().application_id
         data = {
-            "newStatus": 3
+            "newStatus": 3,
         }
         response = self.client.patch(f'{self.base_url}{applicationId + "/"}', data, format='json')
         self.assertEqual(response.status_code, 200)

@@ -70,7 +70,7 @@ class ApplicationsAPITest(TestCase):
     def get_messages(self): 
         self.auth_employer()
         data = {
-            "applicationId": self.application.application_id,
+            "applicationId": self.application.application_id
         }
         response = self.client.get(self.base_url, data)
         self.assertEqual(response.status_code, 200)
@@ -120,6 +120,7 @@ class ApplicationsAPITest(TestCase):
         message_id = Message.objects.all()[1].message_id + "/"
         response = self.client.patch(f"{self.base_url}{message_id}", data, format="json")
         self.assertEqual(response.status_code, 200)
+        
 
  
     # DELETE

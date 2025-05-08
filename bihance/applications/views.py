@@ -39,9 +39,9 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
             
-        serialized_data = input_serializer.validated_data
-        application_status = serialized_data.get("applicationStatus")
-        user_only = serialized_data.get("userOnly")
+        validated_data = input_serializer.validated_data
+        application_status = validated_data.get("applicationStatus")
+        user_only = validated_data.get("userOnly")
 
         # Different ways to retrieve data    
         if user_only:
@@ -77,9 +77,9 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
-        serialized_data = input_serializer.validated_data
-        job_id = serialized_data["jobId"]
-        employer_id = serialized_data["employerId"]
+        validated_data = input_serializer.validated_data
+        job_id = validated_data["jobId"]
+        employer_id = validated_data["employerId"]
         
         # Try to retrieve the job record 
         try: 
@@ -151,10 +151,10 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
-        serialized_data = input_serializer.validated_data
-        application_id = serialized_data["applicationId"]
-        new_status = serialized_data.get("newStatus")
-        new_bio = serialized_data.get("newBio")
+        validated_data = input_serializer.validated_data
+        application_id = validated_data["applicationId"]
+        new_status = validated_data.get("newStatus")
+        new_bio = validated_data.get("newBio")
         
         if new_status:
             assert(new_bio is None)
@@ -226,8 +226,8 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
-        serialized_data = input_serializer.validated_data
-        application_id = serialized_data["applicationId"]
+        validated_data = input_serializer.validated_data
+        application_id = validated_data["applicationId"]
 
         # Try to retrieve the application record
         try:

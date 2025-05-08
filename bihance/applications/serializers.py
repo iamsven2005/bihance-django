@@ -1,5 +1,6 @@
 from .models import Application, Job, User
 from rest_framework import serializers
+from utils.utils import detect_extra_fields
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -9,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'first_name', 'last_name', 'email', 'image_url', 'phone',
             'employee', 'bio', 'age', 'created_at', 'updated_at', 'role', 'location'
         ]
-
+        
 
 class JobSerializer(serializers.ModelSerializer):
     employer = UserSerializer(source='employer_id', read_only=True)
@@ -21,7 +22,7 @@ class JobSerializer(serializers.ModelSerializer):
             'description', 'requirements', 'posted_date', 'photo_url', 'start_age', 'end_age',
             'gender', 'location', 'job_type', 'location_name', 'company', 'duration', 'pay_type'
         ]
-
+     
 
 class ApplicationSerializer(serializers.ModelSerializer):
     job = JobSerializer(source='job_id', read_only=True)
@@ -39,10 +40,18 @@ class ApplicationListInputSerializer(serializers.Serializer):
     applicationStatus = serializers.IntegerField(required=False)
     userOnly = serializers.BooleanField(required=False)
 
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
+
 
 class ApplicationCreateInputSerializer(serializers.Serializer):
     jobId = serializers.CharField() 
     employerId = serializers.CharField()
+    
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
 
 
 class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
@@ -51,6 +60,8 @@ class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
     newBio = serializers.CharField(required=False)
     
     def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        
         has_status = "newStatus" in data
         has_bio = "newBio" in data
 
@@ -62,3 +73,9 @@ class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
 
 class ApplicationDestroyInputSerializer(serializers.Serializer):
     applicationId = serializers.CharField()
+
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
+
+

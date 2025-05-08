@@ -38,9 +38,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
             
-        serialized_data = input_serializer.validated_data
-        application_id = serialized_data["applicationId"]
-        since = serialized_data.get("since")
+        validated_data = input_serializer.validated_data
+        application_id = validated_data["applicationId"]
+        since = validated_data.get("since")
 
         # User verification
         user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
@@ -75,12 +75,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
-        serialized_data = input_serializer.validated_data
-        content = serialized_data.get("content")
-        application_id = serialized_data["applicationId"]
-        reply_to_id = serialized_data.get("replyToId")
-        file_url = serialized_data.get("fileUrl")
-        file_name = serialized_data.get("fileName")
+        validated_data = input_serializer.validated_data
+        content = validated_data.get("content")
+        application_id = validated_data["applicationId"]
+        reply_to_id = validated_data.get("replyToId")
+        file_url = validated_data.get("fileUrl")
+        file_name = validated_data.get("fileName")
     
         # User verification
         user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
@@ -132,10 +132,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
-        serialized_data = input_serializer.validated_data
-        message_id = serialized_data["messageId"]
-        new_content = serialized_data["newContent"]
-        application_id = serialized_data["applicationId"]
+        validated_data = input_serializer.validated_data
+        message_id = validated_data["messageId"]
+        new_content = validated_data["newContent"]
+        application_id = validated_data["applicationId"]
 
         # Try to retrieve the message record
         try: 
@@ -169,8 +169,8 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
-        serialized_data = input_serializer.validated_data
-        message_id = serialized_data["messageId"]
+        validated_data = input_serializer.validated_data
+        message_id = validated_data["messageId"]
         
         # Try to retrieve the message record
         try: 

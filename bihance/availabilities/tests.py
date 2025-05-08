@@ -42,7 +42,7 @@ class AvailabilitiesAPITest(TestCase):
         data = {
             "startTime": startTime,
             "endTime": endTime,
-            "title": "mommy"
+            "title": "mommy",
         }
         response = self.client.post(self.base_url, data, format='json')
         self.assertEqual(response.status_code, 200)

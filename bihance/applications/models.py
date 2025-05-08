@@ -90,6 +90,7 @@ class Job(models.Model):
             models.Index(fields=['job_type']),
             models.Index(fields=['location_name']),
         ]
+        unique_together=(("name", "employer_id", "start_date"))
 
 
 class Application(models.Model):
@@ -110,5 +111,6 @@ class Application(models.Model):
             models.Index(fields=['job_id']),
             models.Index(fields=['employee_id']),
         ]
+        unique_together=(("job_id", "employee_id"))
 
 

@@ -1,6 +1,7 @@
 from applications.views import ApplicationsViewSet
 from availabilities.views import AvailabilitiesViewSet
 from companies.views import CompanyViewSet
+from employer.views import EmployerViewSet
 from message.views import MessageViewSet
 from django.contrib import admin
 from django.urls import path, include
@@ -12,6 +13,8 @@ router.register(r"applications", ApplicationsViewSet)
 router.register(r"availabilities", AvailabilitiesViewSet)
 router.register(r"messages", MessageViewSet)
 router.register(r"companies", CompanyViewSet)
+router.register(r"employer", EmployerViewSet)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

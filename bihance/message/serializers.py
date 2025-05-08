@@ -2,21 +2,26 @@ from .models import Message, MessageFile
 from applications.serializers import ApplicationSerializer, UserSerializer
 from django.utils import timezone
 from rest_framework import serializers
+from utils.utils import detect_extra_fields
 
 
 # Takes a normal dictionary object 
 class MessageListInputSerializer(serializers.Serializer): 
     # OK if field values are originally strings 
     # DRF automatically parses 
-    applicationId = serializers.UUIDField(required=True)
+    applicationId = serializers.UUIDField()
     since = serializers.DateTimeField(required=False)
 
     def validate_since(self, value): 
         if value > timezone.now():
             raise serializers.ValidationError("The 'since' parameter cannot be in the future.")
         return value
+    
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
 
-
+    
 # Takes a model object 
 class MessageSerializer(serializers.ModelSerializer):
     application = ApplicationSerializer(source="application_id", read_only=True)
@@ -35,7 +40,7 @@ class MessageSerializer(serializers.ModelSerializer):
            'message_id', 'content', 'date', 'application', 'sender', 
            'is_edited', 'is_deleted', 'last_edited_at', 'reply_to_message'
         ]
-
+   
 
 class MessageFileSerializer(serializers.ModelSerializer): 
     message = MessageSerializer(source="message_id", read_only=True) 
@@ -50,7 +55,7 @@ class MessageFileSerializer(serializers.ModelSerializer):
 
 
 class MessageCreateInputSerializer(serializers.Serializer): 
-    content = serializers.CharField(required=False, allow_null=True)
+    content = serializers.CharField(required=False)
     applicationId = serializers.UUIDField()
     replyToId = serializers.UUIDField(required=False)
     fileUrl = serializers.URLField(required=False)
@@ -63,6 +68,7 @@ class MessageCreateInputSerializer(serializers.Serializer):
         return processed_content
 
     def validate(self, data):
+        detect_extra_fields(self.initial_data, self.fields)
         content = data.get("content")
         file_url = data.get("fileUrl")
         file_name = data.get("fileName")
@@ -84,9 +90,17 @@ class MessagePartialUpdateInputSerializer(serializers.Serializer):
         if not processed_content:
             raise serializers.ValidationError("Message content cannot be empty.")
         return processed_content
+    
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
 
 
 class MessageDestroyInputSerializer(serializers.Serializer):
     messageId = serializers.UUIDField() 
+
+    def validate(self, data): 
+        detect_extra_fields(self.initial_data, self.fields)
+        return data
 
 

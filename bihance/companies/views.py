@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 
 
 class CompanyViewSet(viewsets.ViewSet):
+    queryset = CompanyFollow.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     # GET multiple -> companies/
@@ -34,8 +35,8 @@ class CompanyViewSet(viewsets.ViewSet):
     # POST -> companies/company_id/follow
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None): 
-        get_object_or_404(EmployerProfile, pk=pk)
-        follow, created = CompanyFollow.objects.get_or_create(user_id=request.user.id, company_id=pk)
+        single_company = get_object_or_404(EmployerProfile, pk=pk)
+        follow, created = CompanyFollow.objects.get_or_create(user_id=request.user, company_id=single_company)
         if created: 
             # Follow
             return HttpResponse(f"Successfully followed company {pk}.", status=200)
@@ -53,8 +54,8 @@ class CompanyViewSet(viewsets.ViewSet):
         return HttpResponse(f"isFollowing: {user_is_following}.", status=200)
 
 
-    @action(detail=True, methods=["get"])
     # GET -> companies/company_id/followers
+    @action(detail=True, methods=["get"])
     def followers(self, request, pk=None): 
         get_object_or_404(EmployerProfile, pk=pk)
         followers_count = CompanyFollow.objects.filter(company_id=pk).count()
