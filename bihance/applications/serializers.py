@@ -55,7 +55,6 @@ class ApplicationCreateInputSerializer(serializers.Serializer):
 
 
 class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
-    applicationId = serializers.CharField()
     newStatus = serializers.IntegerField(required=False)
     newBio = serializers.CharField(required=False)
     
@@ -70,12 +69,4 @@ class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
             return data
         raise serializers.ValidationError("Can either update application status or application bio, but not both.")
             
-
-class ApplicationDestroyInputSerializer(serializers.Serializer):
-    applicationId = serializers.CharField()
-
-    def validate(self, data): 
-        detect_extra_fields(self.initial_data, self.fields)
-        return data
-
 

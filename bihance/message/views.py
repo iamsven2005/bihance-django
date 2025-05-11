@@ -1,7 +1,7 @@
 from .models import Message, MessageFile
 from .serializers import (   
     MessageListInputSerializer, MessageSerializer, MessageFileSerializer, 
-    MessageCreateInputSerializer, MessagePartialUpdateInputSerializer, MessageDestroyInputSerializer
+    MessageCreateInputSerializer, MessagePartialUpdateInputSerializer
 )
 from .utils import get_user_and_application, validate_user_in_application, validate_user_is_sender
 from django.http import HttpResponse, JsonResponse
@@ -24,8 +24,6 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return MessageCreateInputSerializer
             case "partial_update":
                 return MessagePartialUpdateInputSerializer
-            case "destroy":
-                return MessageDestroyInputSerializer
             case _:
                 raise ValueError("Failed to get valid input serializer class.")
 
@@ -126,20 +124,17 @@ class MessageViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, pk=None):
         # Input validation
         input_serializer_class = self.get_input_serializer_class()
-        input_data = request.data.copy()
-        input_data["messageId"] = pk
-        input_serializer = input_serializer_class(data=input_data)
+        input_serializer = input_serializer_class(data=request.data)
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
-        message_id = validated_data["messageId"]
         new_content = validated_data["newContent"]
         application_id = validated_data["applicationId"]
 
         # Try to retrieve the message record
         try: 
-            message = Message.objects.get(message_id=message_id)
+            message = Message.objects.get(message_id=pk)
         except Message.DoesNotExist: 
             return HttpResponse("Message to be edited not found.", status=404)
         
@@ -160,21 +155,9 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     # DELETE -> messages/message_id
     def destroy(self, request, pk=None):
-        # Input validation
-        input_serializer_class = self.get_input_serializer_class()
-        input_data = {
-            "messageId": pk
-        }
-        input_serializer = input_serializer_class(data=input_data)
-        if not input_serializer.is_valid(): 
-            return HttpResponse(input_serializer.errors, status=400)
-
-        validated_data = input_serializer.validated_data
-        message_id = validated_data["messageId"]
-        
         # Try to retrieve the message record
         try: 
-            message = Message.objects.get(message_id=message_id)
+            message = Message.objects.get(message_id=pk)
         except Message.DoesNotExist: 
             return HttpResponse("Message to be deleted not found.", status=404)
         
@@ -194,11 +177,11 @@ class MessageViewSet(viewsets.ModelViewSet):
         # Try to retrieve the message file (if exists)
         message_file = None
         try:
-            message_file = MessageFile.objects.get(message_id=message_id)
+            message_file = MessageFile.objects.get(message_id=pk)
         except MessageFile.DoesNotExist: 
             pass 
         
-        # Perform hard delete of message file
+        # Perform hard delete of message file 
         if message_file:
             message_file.delete()
             return HttpResponse("Message and message file successfully deleted.", status=200)

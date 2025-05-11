@@ -27,11 +27,3 @@ class AvailabilityCreateInputSerializer(serializers.Serializer):
         return data
 
 
-class AvailabilityDestroyInputSerializer(serializers.Serializer):
-    availabilityId = serializers.UUIDField()
-
-    def validate(self, data): 
-        detect_extra_fields(self.initial_data, self.fields)
-        return data
-
-

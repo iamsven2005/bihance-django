@@ -77,17 +77,8 @@ class MessageCreateInputSerializer(serializers.Serializer):
 
 
 class MessagePartialUpdateInputSerializer(serializers.Serializer): 
-    messageId = serializers.UUIDField()
     newContent = serializers.CharField()
     applicationId = serializers.UUIDField()
-
-    def validate(self, data): 
-        detect_extra_fields(self.initial_data, self.fields)
-        return data
-
-
-class MessageDestroyInputSerializer(serializers.Serializer):
-    messageId = serializers.UUIDField() 
 
     def validate(self, data): 
         detect_extra_fields(self.initial_data, self.fields)

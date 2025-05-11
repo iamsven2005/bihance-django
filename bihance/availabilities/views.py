@@ -2,7 +2,6 @@ from .models import Timings
 from .serializers import (
     AvailabilityCreateInputSerializer,
     AvailabilitySerializer,
-    AvailabilityDestroyInputSerializer,
 )
 from applications.models import User
 from django.http import JsonResponse, HttpResponse
@@ -29,7 +28,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist: 
             return HttpResponse("No employee corresponding to the availability.", status=404)
         
-        # Retrieve and serialize data
+        # Retrieve and validate data
         employee_availabilities = Timings.objects.filter(employee_id=employee).order_by("start_time")
         serializer = AvailabilitySerializer(employee_availabilities, many=True)
         return JsonResponse(serializer.data, safe=False)
@@ -110,24 +109,13 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         if not is_employee: 
             return HttpResponse("User must be an employee.", status=400)
         
-        # Input validation
-        input_data = {
-            "availabilityId": pk
-        }
-        input_serializer = AvailabilityDestroyInputSerializer(data=input_data)
-        if not input_serializer.is_valid(): 
-            return HttpResponse(input_serializer.errors, status=400)
-        
-        validated_data = input_serializer.validated_data
-        availability_id = validated_data["availabilityId"]
-    
         # Try to retrieve the timings record
         try:
-            availability_to_delete = Timings.objects.get(time_id=availability_id)
+            availability_to_delete = Timings.objects.get(time_id=pk)
             availability_to_delete.delete()
             return HttpResponse("Availability successfully deleted.", status=200)
 
         except Timings.DoesNotExist:
-            return HttpResponse(f'Availability with {availability_id} not found.', status=404)
+            return HttpResponse(f'Availability with {pk} not found.', status=404)
         
 

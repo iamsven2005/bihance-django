@@ -4,7 +4,6 @@ from .serializers import (
     ApplicationListInputSerializer,
     ApplicationCreateInputSerializer,
     ApplicationPartialUpdateInputSerializer,
-    ApplicationDestroyInputSerializer
 )
 from .utils import get_employee_applications, get_all_applications, send_email
 from django.http import HttpResponse, JsonResponse
@@ -25,8 +24,6 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 return ApplicationCreateInputSerializer
             case "partial_update":
                 return ApplicationPartialUpdateInputSerializer
-            case "destroy":
-                return ApplicationDestroyInputSerializer
             case _:
                 raise ValueError("Failed to get valid input serializer class.")
 
@@ -145,14 +142,11 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, pk=None): 
         # Input validation
         input_serializer_class = self.get_input_serializer_class()
-        input_data = request.data.copy()
-        input_data["applicationId"] = pk
-        input_serializer = input_serializer_class(data=input_data)
+        input_serializer = input_serializer_class(data=request.data)
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
         
         validated_data = input_serializer.validated_data
-        application_id = validated_data["applicationId"]
         new_status = validated_data.get("newStatus")
         new_bio = validated_data.get("newBio")
         
@@ -166,7 +160,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             
             # Try to retrieve the application record     
             try: 
-                application_to_update = Application.objects.get(application_id=application_id)
+                application_to_update = Application.objects.get(application_id=pk)
 
                 # Quirky Django behaviour 
                 # When accessing FK field, doesnt give FK value, gives the entire PK object!
@@ -179,7 +173,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
                 application_to_update.save()
 
             except Application.DoesNotExist: 
-                return HttpResponse(f"Application with {application_id} not found.", status=404)
+                return HttpResponse(f"Application with {pk} not found.", status=404)
             
             # Send confirmation email to EMPLOYEE
             if new_status == 2:
@@ -200,12 +194,12 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
             # Try to retrieve the application record     
             try: 
-                application_to_update = Application.objects.get(application_id=application_id)
+                application_to_update = Application.objects.get(application_id=pk)
                 application_to_update.bio = new_bio
                 application_to_update.save()
 
             except Application.DoesNotExist: 
-                return HttpResponse(f"Application with {application_id} not found.", status=404)
+                return HttpResponse(f"Application with {pk} not found.", status=404)
                 
             return HttpResponse("Application bio successfully updated.", status=200)
 
@@ -217,27 +211,15 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         if not is_employee: 
             return HttpResponse("User must be an employee.", status=400)  
         
-        # Input validation
-        input_serializer_class = self.get_input_serializer_class()
-        input_data = {
-            "applicationId": pk,
-        }
-        input_serializer = input_serializer_class(data=input_data)
-        if not input_serializer.is_valid(): 
-            return HttpResponse(input_serializer.errors, status=400)
-        
-        validated_data = input_serializer.validated_data
-        application_id = validated_data["applicationId"]
-
         # Try to retrieve the application record
         try:
-            application_to_delete = Application.objects.get(application_id=application_id)
+            application_to_delete = Application.objects.get(application_id=pk)
             job_id = application_to_delete.job_id.job_id
             job_name = Job.objects.get(job_id=job_id).name
             application_to_delete.delete()
 
         except Application.DoesNotExist:
-            return HttpResponse(f'Application with {application_id} not found.', status=404)
+            return HttpResponse(f'Application with {pk} not found.', status=404)
         
         # Send confirmation email to EMPLOYEE
         if request.user.email:
