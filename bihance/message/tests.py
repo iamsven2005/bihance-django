@@ -5,6 +5,7 @@ from .models import Message, MessageFile
 from django.test import TestCase
 from rest_framework.test import APIClient
 from tests.objects import get_employee, get_employer, get_job, get_application
+from tests.utils import verify_message_shape, verify_message_file_shape
 from utils.utils import terminate_current_connections
 
 
@@ -75,38 +76,21 @@ class ApplicationsAPITest(TestCase):
         response = self.client.get(self.base_url, data)
         self.assertEqual(response.status_code, 200)
         
-        combined_data = response.json()
-        self.assertIsInstance(combined_data, dict)
-        self.assertIn("messages", combined_data)
-        self.assertIn("message_files", combined_data)
+        overall_data = response.json()
+        self.assertIsInstance(overall_data, list)
 
-        messages = combined_data["messages"]
-        message_files = combined_data["message_files"]
-        self.assertEqual(len(messages), len(message_files))
+        for message_data in overall_data: 
+            self.assertIsInstance(message_data, dict)
+            self.assertEqual(len(message_data), 2)
+            self.assertIn("message", message_data)
+            self.assertIn("files", message_data)
 
-        for message in messages: 
-            self.assertIsInstance(message, dict)
+            message = message_data["message"]
+            verify_message_shape(message)
 
-            # Top level fields 
-            self.assertIn("message_id", message)
-            self.assertIn("content", message)
-            self.assertIn("date", message)
-            self.assertIn("is_edited", message)
-            self.assertIn("is_deleted", message)
-            self.assertIn("last_edited_at", message)
-
-            # Nested fields
-            application = message["application"]
-            sender = message["sender"]
-            reply_to_message = message["reply_to_message"]
-            self.assertIsInstance(application, dict)
-            self.assertIsInstance(sender, dict)
-            self.assertIsInstance(reply_to_message, dict | None)
-
-        for message_file in message_files:
-            self.assertIsInstance(message_file, dict)
-            # <Will update later>
-            pass
+            message_files = message_data["files"]
+            for message_file in message_files:
+                verify_message_file_shape(message_file)
 
 
     # PATCH

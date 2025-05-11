@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 from tests.objects import get_employee
+from tests.utils import verify_availability_shape
 from utils.utils import terminate_current_connections
 
 
@@ -58,23 +59,9 @@ class AvailabilitiesAPITest(TestCase):
         self.assertIsInstance(availabilities, list)
 
         # Verify the shape of availabilities -> a list of dictonaries
-        # Where each dictionary follows the serialized structure
+        # Where each dictionary follows the deserialized structure
         for availability in availabilities: 
-            self.assertIsInstance(availability, dict)
-
-            # Top-level fields
-            self.assertIn('time_id', availability)
-            self.assertIn('start_time', availability)
-            self.assertIn('end_time', availability)
-            self.assertIn('title', availability)
-
-            # Nested 'employee' dictionary
-            employee = availability['employee']
-            self.assertIsInstance(employee, dict)
-            self.assertIn('id', employee)
-            self.assertIn('first_name', employee)
-            self.assertIn('last_name', employee)
-            self.assertIn('email', employee)
+            verify_availability_shape(availability)
         
     
     # DELETE 

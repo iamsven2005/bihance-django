@@ -46,25 +46,27 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not is_valid: 
             return HttpResponse("This user is not the employee or employer in the application.", status=403)
             
-        # Different ways to retrive data
+        # Retrive messages
         if since: 
-            messages = Message.objects.filter(date__gte=since, application_id=application_id)
+            messages = Message.objects.filter(date__gte=since, application_id=application_id).order_by("message_id")
         else: 
-            messages = Message.objects.filter(application_id=application_id)
+            messages = Message.objects.filter(application_id=application_id).order_by("message_id")
+
+        # Retrieve associated files and construct response 
+        response = []
+        for message in messages: 
+            validated_message = MessageSerializer(message).data
+            files = MessageFile.objects.filter(message_id=message.message_id)
+            validated_files = MessageFileSerializer(files, many=True).data
             
-        message_files = MessageFile.objects.filter(message_id__in=messages)
+            response.append({
+                "message": validated_message,
+                "files": validated_files
+            })
 
-        # Packing serialized data together 
-        messages_serializer = MessageSerializer(messages, many=True)
-        message_files_serializer = MessageFileSerializer(message_files, many=True)  
-        combined_data = {
-            "messages": messages_serializer.data,
-            "message_files": message_files_serializer.data
-        }
+        return JsonResponse(response, safe=False)
 
-        return JsonResponse(combined_data, safe=False)
         
-
     # POST -> messages/
     def create(self, request):
         # Input validation

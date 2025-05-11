@@ -36,7 +36,7 @@ class CompanyViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None): 
         single_company = get_object_or_404(EmployerProfile, pk=pk)
-        follow, created = CompanyFollow.objects.get_or_create(user_id=request.user, company_id=single_company)
+        follow, created = CompanyFollow.objects.get_or_create(follower_id=request.user, company_id=single_company)
         if created: 
             # Follow
             return HttpResponse(f"Successfully followed company {pk}.", status=200)
@@ -50,7 +50,7 @@ class CompanyViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["get"])
     def is_following(self, request, pk=None):
         get_object_or_404(EmployerProfile, pk=pk)
-        user_is_following = CompanyFollow.objects.filter(user_id=request.user.id, company_id=pk).exists()
+        user_is_following = CompanyFollow.objects.filter(follower_id=request.user.id, company_id=pk).exists()
         return HttpResponse(f"isFollowing: {user_is_following}.", status=200)
 
 

@@ -5,6 +5,7 @@ from .models import EmployerProfile
 from django.test import TestCase
 from rest_framework.test import APIClient
 from tests.objects import get_employee, get_employer, get_job
+from tests.utils import verify_employer_profile_shape, verify_job_shape
 from utils.utils import terminate_current_connections
 
 
@@ -31,6 +32,7 @@ class CompaniesAPITest(TestCase):
         self.client = APIClient() 
         self.client.force_authenticate(user=self.employee)
 
+
     # GET multiple companies
     def test_get_companies(self): 
         response = self.client.get(self.base_url)
@@ -38,20 +40,7 @@ class CompaniesAPITest(TestCase):
 
         companies = response.json()
         for company in companies: 
-            self.assertIsInstance(company, dict)
-
-            # Top level fields
-            self.assertIn("company_id", company)
-            self.assertIn("company_name", company)
-            self.assertIn("company_website", company)
-            self.assertIn("contact_name", company)
-            self.assertIn("contact_role", company)
-            self.assertIn("company_size", company)
-
-            # Nested fields 
-            employee = company["employee"]
-            self.assertIsInstance(employee, dict)
-            # <will update later> 
+            verify_employer_profile_shape(company)
 
 
     # GET single company
@@ -68,22 +57,11 @@ class CompaniesAPITest(TestCase):
         
         # Nested fields 
         company_info = company_and_jobs["company"]
-        self.assertIn("company_id", company_info)    
-        self.assertIn("company_name", company_info)
-        self.assertIn("company_website", company_info)
-        self.assertIn("contact_name", company_info)
-        self.assertIn("contact_role", company_info)
-        self.assertIn("company_size", company_info)
-
+        verify_employer_profile_shape(company_info)
+        
         jobs_info = company_and_jobs["jobs"]
         for job_info in jobs_info: 
-            self.assertIsInstance(job_info, dict)
-            self.assertIn("job_id", job_info)
-            self.assertIn("name", job_info)
-            self.assertIn("start_date", job_info)
-            self.assertIn("end_date", job_info)
-            self.assertIn("salary", job_info)
-            # <will update later> 
+            verify_job_shape(job_info)
 
 
     # Combined testing

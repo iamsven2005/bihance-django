@@ -5,6 +5,7 @@ from .models import Application
 from django.test import TestCase
 from rest_framework.test import APIClient
 from tests.objects import get_employee, get_employer, get_job, get_application
+from tests.utils import verify_application_shape
 from utils.utils import terminate_current_connections
 
 
@@ -42,42 +43,9 @@ class ApplicationsAPITest(TestCase):
         self.assertIsInstance(applications, list)
 
         # Verify the shape of applications -> a list of dictonaries
-        # Where each dictionary follows the serialized structure
+        # Where each dictionary follows the deserialized structure
         for application in applications: 
-            self.assertIsInstance(application, dict)
-
-            # Top-level fields
-            self.assertIn('application_id', application)
-            self.assertIn('job', application)
-            self.assertIn('employee', application)
-            self.assertIn('accept', application)
-            self.assertIn('bio', application)
-            self.assertIn('employee_review', application)
-            self.assertIn('employer_review', application)
-            self.assertIn('employer_id', application)
-
-            # Nested 'job' dictionary
-            job = application['job']
-            self.assertIsInstance(job, dict)
-            self.assertIn('job_id', job)
-            self.assertIn('name', job)
-            self.assertIn('employer', job)
-
-            # Nested 'employer' dictionary inside job
-            employer = job['employer']
-            self.assertIsInstance(employer, dict)
-            self.assertIn('id', employer)
-            self.assertIn('first_name', employer)
-            self.assertIn('last_name', employer)
-            self.assertIn('email', employer)
-
-            # Nested 'employee' dictionary
-            employee = application['employee']
-            self.assertIsInstance(employee, dict)
-            self.assertIn('id', employee)
-            self.assertIn('first_name', employee)
-            self.assertIn('last_name', employee)
-            self.assertIn('email', employee)
+            verify_application_shape(application)
         
 
     # POST

@@ -1,3 +1,5 @@
+# Non-testing related utils
+
 from applications.models import User
 from django.db import connection
 from rest_framework import serializers

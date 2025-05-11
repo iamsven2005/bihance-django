@@ -37,18 +37,18 @@ class EmployerProfile(models.Model):
 
 class CompanyFollow(models.Model):
     follow_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column="id")
-    user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='userId')  
+    follower_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column='userId')  
     company_id = models.ForeignKey(EmployerProfile, on_delete=models.DO_NOTHING, db_column='companyId')  
     created_at = models.DateTimeField(default=timezone.now, db_column='createdAt')  
 
     class Meta:
         db_table = 'companyFollow'
         indexes = [
-            models.Index(fields=['user_id']),
+            models.Index(fields=['follower_id']),
             models.Index(fields=['company_id']),
-            models.Index(fields=['user_id', 'company_id'])
+            models.Index(fields=['follower_id', 'company_id'])
         ]
 
-        unique_together = (('user_id', 'company_id'))
+        unique_together = (('follower_id', 'company_id'))
 
 

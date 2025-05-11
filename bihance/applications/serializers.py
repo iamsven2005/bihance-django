@@ -40,6 +40,13 @@ class ApplicationListInputSerializer(serializers.Serializer):
     applicationStatus = serializers.IntegerField(required=False)
     userOnly = serializers.BooleanField(required=False)
 
+    def validate_applicationStatus(self, value): 
+        num_value = int(value)
+        if num_value < 0 or num_value > 4: 
+            raise serializers.ValidationError("Application status can only be from 0 - 4.")
+        
+        return num_value
+
     def validate(self, data): 
         detect_extra_fields(self.initial_data, self.fields)
         return data
@@ -57,6 +64,14 @@ class ApplicationCreateInputSerializer(serializers.Serializer):
 class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
     newStatus = serializers.IntegerField(required=False)
     newBio = serializers.CharField(required=False)
+
+    def validate_newStatus(self, value): 
+        num_value = int(value)
+        if num_value < 0 or num_value > 4: 
+            raise serializers.ValidationError("Application status can only be from 0 - 4.")
+        
+        return num_value
+            
     
     def validate(self, data): 
         detect_extra_fields(self.initial_data, self.fields)
