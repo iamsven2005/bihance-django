@@ -17,4 +17,4 @@
 
 8. python manage.py makemigrations
 9. python manage.py migrate
-10. python manage.py runserver
+10. python manage.py runserver 0.0.0.0:8000
