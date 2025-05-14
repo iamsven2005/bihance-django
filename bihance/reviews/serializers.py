@@ -10,6 +10,7 @@ class ReviewPartialUpdateInputSerializer(serializers.Serializer):
         num_value = int(value)
         if num_value > 5 or num_value < 1: 
             raise serializers.ValidationError("Rating must be from 1 - 5.")
+        return value
 
     def validate(self, data): 
         detect_extra_fields(self.initial_data, self.fields)

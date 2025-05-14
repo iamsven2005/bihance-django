@@ -12,8 +12,6 @@ from utils.utils import check_is_employee, check_is_employer
 
 
 class ApplicationsViewSet(viewsets.ModelViewSet):
-    queryset = Application.objects.all()
-    serializer_class = ApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_input_serializer_class(self): 

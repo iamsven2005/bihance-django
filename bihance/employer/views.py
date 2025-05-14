@@ -7,7 +7,6 @@ from utils.utils import check_is_employer
 
 
 class EmployerViewSet(viewsets.ViewSet):
-    queryset = EmployerProfile.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     # POST -> employer/

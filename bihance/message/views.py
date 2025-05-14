@@ -13,8 +13,6 @@ from rest_framework import permissions, viewsets
 # Frontend -> UploadThing to manage actual files 
 # Backend -> MessageFile db to manage file urls 
 class MessageViewSet(viewsets.ModelViewSet): 
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_input_serializer_class(self): 

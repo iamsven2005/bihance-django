@@ -10,8 +10,6 @@ from utils.utils import check_is_employee
 
 
 class AvailabilitiesViewSet(viewsets.ModelViewSet): 
-    queryset = Timings.objects.all()
-    serializer_class = AvailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
 
     # GET multiple -> availabilities/

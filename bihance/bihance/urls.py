@@ -11,15 +11,16 @@ from rest_framework import routers
 
 
 router = routers.DefaultRouter()
-router.register(r"applications", ApplicationsViewSet)
-router.register(r"availabilities", AvailabilitiesViewSet)
-router.register(r"messages", MessageViewSet)
-router.register(r"companies", CompanyViewSet)
-router.register(r"employer", EmployerViewSet)
-router.register(r"reviews", ReviewsViewSet)
-
+router.register(r"applications", ApplicationsViewSet, "applications")
+router.register(r"availabilities", AvailabilitiesViewSet, "availabilities")
+router.register(r"companies", CompanyViewSet, "companies")
+router.register(r"employer", EmployerViewSet, "employer")
+router.register(r"messages", MessageViewSet, "messages")
+router.register(r"reviews", ReviewsViewSet, "reviews")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls))
 ]
+
+

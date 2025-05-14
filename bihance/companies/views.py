@@ -9,7 +9,6 @@ from rest_framework.decorators import action
 
 
 class CompanyViewSet(viewsets.ViewSet):
-    queryset = CompanyFollow.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     # GET multiple -> companies/

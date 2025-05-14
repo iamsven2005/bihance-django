@@ -6,7 +6,6 @@ from utils.utils import get_user_and_application, validate_user_in_application
 
 
 class ReviewsViewSet(viewsets.ViewSet):
-    queryset = Application.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     # PATCH -> reviews/application_id
@@ -24,14 +23,18 @@ class ReviewsViewSet(viewsets.ViewSet):
             user_role = "employer"
 
         # Input validation
-        serializer = ReviewPartialUpdateInputSerializer(request.data)
+        serializer = ReviewPartialUpdateInputSerializer(data=request.data)
         if not serializer.is_valid():
             return HttpResponse(serializer.errors, status=400)
         
         validated_data = serializer.data
         content = validated_data["content"]
         rating = validated_data.get("rating")
-        combined_review = content + " | Rating:" + rating
+
+        if rating:
+            combined_review = content + " | Rating:" + rating
+        else: 
+            combined_review = content
 
         # Update the appropriate field
         if user_role == "employee": 
