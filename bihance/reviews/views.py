@@ -2,7 +2,7 @@ from applications.models import Application
 from .serializers import ReviewPartialUpdateInputSerializer
 from django.http import HttpResponse
 from rest_framework import permissions, viewsets
-from utils.utils import get_user_and_application, validate_user_in_application
+from utils.utils import get_user_and_application, validate_user_in_application, check_is_employee
 
 
 class ReviewsViewSet(viewsets.ViewSet):
@@ -17,7 +17,7 @@ class ReviewsViewSet(viewsets.ViewSet):
             return HttpResponse("This user is not the employer or employee in the application.", status=403)        
         
         # Specify user role 
-        if application.employee_id == user: 
+        if check_is_employee(user): 
             user_role = "employee"
         else: 
             user_role = "employer"
