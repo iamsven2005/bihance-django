@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'companies.apps.CompaniesConfig',
     'employer.apps.EmployerConfig',
     'message.apps.MessageConfig',
+    'reviews.apps.ReviewsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

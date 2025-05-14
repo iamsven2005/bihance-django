@@ -3,7 +3,8 @@ from .serializers import (
     MessageListInputSerializer, MessageSerializer, MessageFileSerializer, 
     MessageCreateInputSerializer, MessagePartialUpdateInputSerializer
 )
-from .utils import get_user_and_application, validate_user_in_application, validate_user_is_sender
+from .utils import validate_user_is_sender
+from utils.utils import get_user_and_application, validate_user_in_application
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from rest_framework import permissions, viewsets
