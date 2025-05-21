@@ -4,8 +4,8 @@ from applications.models import Job
 from applications.serializers import JobSerializer
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
-from files.models import Files
-from files.serializers import FilesSerializer
+from files.models import File
+from files.serializers import FileSerializer
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 
@@ -22,8 +22,8 @@ class CompanyViewSet(viewsets.ViewSet):
             associated_jobs = Job.objects.filter(employer_id=company.employer_id.id)
 
             try: 
-                associated_file = Files.objects.get(associated_company=company)
-            except Files.DoesNotExist: 
+                associated_file = File.objects.get(associated_company=company)
+            except File.DoesNotExist: 
                 associated_file = None
 
             company_serializer = EmployerProfileSerializer(company)
@@ -37,7 +37,7 @@ class CompanyViewSet(viewsets.ViewSet):
             if associated_file is None: 
                 result.append(final_data)
             else: 
-                file_serializer = FilesSerializer(associated_file)
+                file_serializer = FileSerializer(associated_file)
                 final_data["file"] = file_serializer.data
                 result.append(final_data)
     
@@ -50,8 +50,8 @@ class CompanyViewSet(viewsets.ViewSet):
         associated_jobs = Job.objects.filter(employer_id=single_company.employer_id.id)
         
         try: 
-            associated_file = Files.objects.get(associated_company=single_company)
-        except Files.DoesNotExist: 
+            associated_file = File.objects.get(associated_company=single_company)
+        except File.DoesNotExist: 
             associated_file = None
 
         company_serializer = EmployerProfileSerializer(single_company)
@@ -65,7 +65,7 @@ class CompanyViewSet(viewsets.ViewSet):
         if associated_file is None: 
             return JsonResponse(final_data)
         else: 
-            file_serializer = FilesSerializer(associated_file)
+            file_serializer = FileSerializer(associated_file)
             final_data["file"] = file_serializer.data
             return JsonResponse(final_data)
 

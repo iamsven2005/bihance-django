@@ -4,8 +4,8 @@
 from applications.serializers import UserSerializer, JobSerializer, ApplicationSerializer
 from availabilities.serializers import AvailabilitySerializer
 from companies.serializers import EmployerProfileSerializer, CompanyFollowSerializer
-from message.serializers import MessageSerializer, MessageFileSerializer
-from files.serializers import FilesSerializer
+from message.serializers import MessageSerializer
+from files.serializers import FileSerializer
 
 
 # Verify shape of User JSON object
@@ -111,25 +111,9 @@ def verify_message_shape(message):
             verify_message_shape(reply_to_message)
     
 
-# Verify shape of MessageFile JSON object 
-def verify_message_file_shape(message_file):
-    expected_fields = MessageFileSerializer().get_fields().keys()
-
-    assert isinstance(message_file, dict), f"Expected message_file to be dict, got {type(message_file)} instead."
-    for field in expected_fields: 
-        assert field in message_file, f"Missing field {field} in message_file."
-
-        if field == "message": 
-            message = message_file[field]
-            verify_message_shape(message)
-
-        if field == "sender": 
-            sender = message_file[field]
-            verify_user_shape(sender)
-
-
+# Verify shape of File JSON object 
 def verify_file_shape(file): 
-    expected_fields = FilesSerializer().get_fields().keys()
+    expected_fields = FileSerializer().get_fields().keys()
 
     assert isinstance(file, dict), f"Expected file to be dict, got {type(file)} instead."
     for field in expected_fields:

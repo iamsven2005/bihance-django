@@ -1,4 +1,4 @@
-from .models import Timings
+from .models import Timing
 from .serializers import (
     AvailabilityCreateInputSerializer,
     AvailabilitySerializer,
@@ -27,7 +27,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             return HttpResponse("No employee corresponding to the availability.", status=404)
         
         # Retrieve and validate data
-        employee_availabilities = Timings.objects.filter(employee_id=employee).order_by("start_time")
+        employee_availabilities = Timing.objects.filter(employee_id=employee).order_by("start_time")
         serializer = AvailabilitySerializer(employee_availabilities, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -59,7 +59,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         # Check if the availability exists already 
         try: 
             # UNIQUE constraint
-            Timings.objects.get(
+            Timing.objects.get(
                 employee_id=employee,
                 start_time=start_time, 
                 end_time=end_time
@@ -67,11 +67,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             # No exception raised, availability exists 
             return HttpResponse("Availability already exists.", status=400)     
         
-        except Timings.DoesNotExist:  
+        except Timing.DoesNotExist:  
             pass
  
         # Check if the availability start-end time overlaps with existing ones
-        current_availabilities = Timings.objects.filter(employee_id=employee)
+        current_availabilities = Timing.objects.filter(employee_id=employee)
         has_overlap = False
         other_start_time = None
         other_end_time = None 
@@ -89,7 +89,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             return HttpResponse(f"New availability from {start_time} to {end_time} overlaps with current availability from {other_start_time} to {other_end_time}.", status=400)    
 
         # Create the availability 
-        new_availability = Timings.objects.create(
+        new_availability = Timing.objects.create(
             employee_id=employee,
             start_time=start_time, 
             end_time=end_time,
@@ -109,11 +109,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         
         # Try to retrieve the timings record
         try:
-            availability_to_delete = Timings.objects.get(time_id=pk)
+            availability_to_delete = Timing.objects.get(time_id=pk)
             availability_to_delete.delete()
             return HttpResponse("Availability successfully deleted.", status=200)
 
-        except Timings.DoesNotExist:
+        except Timing.DoesNotExist:
             return HttpResponse(f'Availability with {pk} not found.', status=404)
         
 

@@ -1,12 +1,13 @@
 # Integration testing (models, serializers, utils, views)
 # Negative test cases? 
 
-from .models import Message, MessageFile
+from .models import Message
 from django.test import TestCase
+from files.models import File
 from rest_framework.test import APIClient
-from tests.objects import get_employee, get_employer, get_job, get_application
-from tests.utils import verify_message_shape, verify_message_file_shape
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee, get_employer, get_job, get_application, get_message
+from utils.tests.utils import verify_message_shape, verify_file_shape
 
 
 terminate_current_connections()
@@ -20,6 +21,9 @@ class ApplicationsAPITest(TestCase):
         cls.employer = get_employer()
         cls.job = get_job()
         cls.application = get_application()
+
+        # [Msg 1]: From employee, text only
+        cls.employee_message = get_message() 
 
         # Base url for all messages endpoint
         cls.base_url = '/api/messages/'
@@ -40,30 +44,32 @@ class ApplicationsAPITest(TestCase):
         self.delete_message()
 
     # POST
-    def create_messages(self): 
-        # [Employee] Msg 1: File only
-        self.auth_employee()
-        data = {
-            "applicationId": self.application.application_id,
-            "fileUrl": "https://utfs.io/f/IiVMJL7J1Q98Pr3OF3uKRAsDCIS5jdvLBZw23T6fzthKQO0u",
-            "fileName": "first_button.gif"
-        }
-        response = self.client.post(self.base_url, data, format="json")
-        success_message = response.content.decode()
-        message_id = success_message.split(" | ")[0].split(": ")[1]
-        self.assertEqual(response.status_code, 200)
-
-        # [Employer] Msg 2: Reply to Msg 1, Text and File
+    def create_messages(self):
+        # [Msg 2]: Reply to Msg 1, from employer, text and file  
         self.auth_employer()
         data = {
             "content": "Inshallah",
             "applicationId": self.application.application_id,
-            "replyToId": message_id,
-            "fileUrl": "https://utfs.io/f/IiVMJL7J1Q98Pr3OF3uKRAsDCIS5jdvLBZw23T6fzthKQO0u",
-            "fileName": "first_button.gif"
+            "replyToId": self.employee_message.message_id,
+            "hasFile": True
         }
-
         response = self.client.post(self.base_url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        success_message = response.content.decode()
+        message_id = success_message.split(": ")[1].replace(".", "")
+        self.message_id = message_id
+        
+        data = {
+            "fileKey": "YX7xA2cz6RDlzAiEhYyaEZD8247KIlgAHiNfeSLWX1y5Ju63",
+            "fileUrl": "https://bhg1of7blh.ufs.sh/f/YX7xA2cz6RDlzAiEhYyaEZD8247KIlgAHiNfeSLWX1y5Ju63",
+            "fileName": "catto",
+            "fileType": "image/jpeg",
+            "fileSize": 64755,
+            "associatedType": "Message",
+            "associatedObjectId": message_id
+        }
+        response = self.client.post("/api/files/", data, format="json")
         self.assertEqual(response.status_code, 200)
 
 
@@ -76,23 +82,30 @@ class ApplicationsAPITest(TestCase):
         response = self.client.get(self.base_url, data)
         self.assertEqual(response.status_code, 200)
         
-        overall_data = response.json()
-        self.assertIsInstance(overall_data, list)
+        messages = response.json()
+        self.assertIsInstance(messages, list)
+        self.assertEqual(len(messages), 2)
 
-        for message_data in overall_data: 
-            self.assertIsInstance(message_data, dict)
-            self.assertEqual(len(message_data), 2)
-            self.assertIn("message", message_data)
-            self.assertIn("files", message_data)
+        for message in messages: 
+            self.assertIsInstance(message, dict)
+            self.assertIn("message", message)
 
-            message = message_data["message"]
-            verify_message_shape(message)
+            message_info = message['message']
+            if message_info['content'] == "Hello World": 
+                # Employee message, no files
+                self.assertNotIn("files", message)
+            else: 
+                # Employer message, got files
+                self.assertIn("files", message)
+                
+            verify_message_shape(message_info)
 
-            message_files = message_data["files"]
-            for message_file in message_files:
-                verify_message_file_shape(message_file)
+            message_files = message.get("files")
+            if message_files: 
+                for file in message_files: 
+                    verify_file_shape(file)
 
-
+                    
     # PATCH
     def patch_message(self): 
         # Update Msg 2
@@ -109,13 +122,12 @@ class ApplicationsAPITest(TestCase):
  
     # DELETE
     def delete_message(self): 
-        # Delete Msg 1
-        self.auth_employee()
-        message_id = Message.objects.all()[0].message_id
-        response = self.client.delete(f"{self.base_url}{message_id}/")
+        # Delete Msg 2
+        self.auth_employer()
+        response = self.client.delete(f"{self.base_url}{self.message_id}/")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Message.objects.count(), 2)
-        self.assertEqual(MessageFile.objects.count(), 1)
+        self.assertEqual(File.objects.count(), 0)
 
         

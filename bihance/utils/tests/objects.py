@@ -32,7 +32,6 @@ def get_job():
         start_date=FIXED_DATE,
         description="Must be able to transform into a tree, detect glitch entities.",
         posted_date=FIXED_DATE,
-        photo_url="https://www.youtube.com/"
     )
     return job
 

@@ -4,7 +4,7 @@ from applications.models import User
 from django.db import models
 
 
-class Timings(models.Model):
+class Timing(models.Model):
     time_id = models.TextField(primary_key=True, default=uuid.uuid4, max_length=36, db_column='timeId')  
     start_time = models.DateTimeField(db_column='Starttime')  
     end_time = models.DateTimeField(db_column='Endtime')  
@@ -12,7 +12,7 @@ class Timings(models.Model):
     title = models.TextField(blank=True, null=True, db_column='Title')  
 
     class Meta:
-        db_table = 'timings'
+        db_table = 'Timing'
         indexes = [
             models.Index(fields=['employee_id']),
         ]

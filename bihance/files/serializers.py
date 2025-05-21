@@ -1,17 +1,17 @@
-from .models import Files, AssociatedType
+from .models import File, AssociatedType
 from rest_framework import serializers
 from utils.utils import detect_extra_fields
 
 
-class FilesSerializer(serializers.ModelSerializer):
+class FileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Files
+        model = File
         fields = [
            'file_key', 'file_url', 'file_name', 'file_type', 'file_size' 
         ]
 
 
-class FilesListInputSerializer(serializers.Serializer): 
+class FileListInputSerializer(serializers.Serializer): 
     associatedType = serializers.ChoiceField(choices=AssociatedType.choices)
     associatedObjectId = serializers.CharField() 
 
@@ -20,7 +20,7 @@ class FilesListInputSerializer(serializers.Serializer):
         return data
 
 
-class FilesCreateInputSerializer(serializers.Serializer): 
+class FileCreateInputSerializer(serializers.Serializer): 
     fileKey = serializers.CharField()
     fileUrl = serializers.URLField()
     fileName = serializers.CharField()

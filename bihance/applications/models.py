@@ -37,9 +37,7 @@ class User(AbstractUser):
     # Need to point this to another unique field
     USERNAME_FIELD = 'id' 
 
-    image_url = models.URLField(null=True, blank=True, db_column="imageUrl")
     phone = models.TextField(unique=True, null=True, blank=True)
-
     employee = models.BooleanField(null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
@@ -51,7 +49,7 @@ class User(AbstractUser):
     # Array fields ignored for now 
 
     class Meta:
-        db_table = "user"
+        db_table = "User"
         indexes = [
             models.Index(fields=['email']),
         ]
@@ -70,7 +68,6 @@ class Job(models.Model):
     requirements = models.TextField(null=True, blank=True, db_column="Requirements")
 
     posted_date = models.DateTimeField(db_column="PostedDate")
-    photo_url = models.URLField(db_column="PhotoUrl")
     start_age = models.IntegerField(null=True, blank=True, db_column="Startage")
     end_age = models.IntegerField(null=True, blank=True, db_column="Endage")
     gender = models.BooleanField(null=True, blank=True, db_column="Gender")
@@ -106,7 +103,7 @@ class Application(models.Model):
     # Array fields ignored for now 
 
     class Meta:
-        db_table = "application"
+        db_table = "Application"
         indexes = [
             models.Index(fields=['job_id']),
             models.Index(fields=['employee_id']),

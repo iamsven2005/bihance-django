@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'first_name', 'last_name', 'email', 'image_url', 'phone',
+            'id', 'first_name', 'last_name', 'email', 'phone',
             'employee', 'bio', 'age', 'created_at', 'updated_at', 'role', 'location'
         ]
         
@@ -19,7 +19,7 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = [
             'job_id', 'name', 'employer', 'start_date', 'end_date', 'salary', 'higher_salary',
-            'description', 'requirements', 'posted_date', 'photo_url', 'start_age', 'end_age',
+            'description', 'requirements', 'posted_date', 'start_age', 'end_age',
             'gender', 'location', 'job_type', 'location_name', 'company', 'duration', 'pay_type'
         ]
      

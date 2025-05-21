@@ -1,4 +1,4 @@
-from .models import Timings
+from .models import Timing
 from applications.serializers import UserSerializer
 from rest_framework import serializers
 from utils.utils import detect_extra_fields
@@ -8,7 +8,7 @@ class AvailabilitySerializer(serializers.ModelSerializer):
     employee = UserSerializer(source='employee_id', read_only=True)
 
     class Meta:
-        model = Timings
+        model = Timing
         fields = [
            'time_id', 'start_time', 'end_time', 'employee', 'title' 
         ]

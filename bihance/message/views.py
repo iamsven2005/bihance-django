@@ -1,6 +1,6 @@
-from .models import Message, MessageFile
+from .models import Message
 from .serializers import (   
-    MessageListInputSerializer, MessageSerializer, MessageFileSerializer, 
+    MessageListInputSerializer, MessageSerializer,
     MessageCreateInputSerializer, MessagePartialUpdateInputSerializer
 )
 from .utils import validate_user_is_sender
@@ -8,10 +8,10 @@ from utils.utils import get_user_and_application, validate_user_in_application
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from rest_framework import permissions, viewsets
+from files.models import File
+from files.serializers import FileSerializer
 
 
-# Frontend -> UploadThing to manage actual files 
-# Backend -> MessageFile db to manage file urls 
 class MessageViewSet(viewsets.ModelViewSet): 
     permission_classes = [permissions.IsAuthenticated]
 
@@ -54,15 +54,20 @@ class MessageViewSet(viewsets.ModelViewSet):
         # Retrieve associated files and construct response 
         response = []
         for message in messages: 
-            validated_message = MessageSerializer(message).data
-            files = MessageFile.objects.filter(message_id=message.message_id)
-            validated_files = MessageFileSerializer(files, many=True).data
-            
-            response.append({
-                "message": validated_message,
-                "files": validated_files
-            })
+            associated_files = File.objects.filter(associated_message=message)
+            message_serializer = MessageSerializer(message)
 
+            if not associated_files: 
+                response.append({
+                    "message": message_serializer.data
+                })
+            else: 
+                files_serializer = FileSerializer(associated_files, many=True)
+                response.append({
+                    "message": message_serializer.data,
+                    "files": files_serializer.data
+                })
+        
         return JsonResponse(response, safe=False)
 
         
@@ -75,12 +80,12 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
-        content = validated_data.get("content")
+
+        # Content is optional, but defaults to an empty string
+        content = validated_data["content"]
         application_id = validated_data["applicationId"]
         reply_to_id = validated_data.get("replyToId")
-        file_url = validated_data.get("fileUrl")
-        file_name = validated_data.get("fileName")
-    
+
         # User verification
         user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
         is_valid = validate_user_in_application(user, application)
@@ -96,29 +101,14 @@ class MessageViewSet(viewsets.ModelViewSet):
             
         # Create the message record 
         message = Message.objects.create(
-            content=content if content else "", 
+            content=content, 
             application_id=application,
             sender_id=user,
             reply_to_id=reply_to_message if reply_to_id else None 
         )
         message_id = message.message_id
 
-        # Create the message file (if applicable)
-        if file_name: 
-            message_file = MessageFile.objects.create(
-                message_id=message,
-                sender_id=user,
-                file_url=file_url, 
-                file_name=file_name,
-                file_type=file_name.split(".")[-1] if "." in file_name else "unknown",
-                file_size=0 
-            )
-            message_file_id = message_file.message_file_id
-
-        if file_name: 
-            return HttpResponse(f"Message created successfully with message id: {message_id} | message file id: {message_file_id}.", status=200)
-        else: 
-            return HttpResponse(f"Message created successfully with message id: {message_id}.", status=200)
+        return HttpResponse(f"Message created successfully with message id: {message_id}.", status=200)
          
 
     # PATCH -> messages/message_id
@@ -175,18 +165,10 @@ class MessageViewSet(viewsets.ModelViewSet):
         message.is_deleted = True 
         message.save()
 
-        # Try to retrieve the message file (if exists)
-        message_file = None
-        try:
-            message_file = MessageFile.objects.get(message_id=pk)
-        except MessageFile.DoesNotExist: 
-            pass 
+        # Try to retrieve the associated files (if exists)
+        associated_files = File.objects.filter(associated_message=message)
+        associated_files.delete()
         
-        # Perform hard delete of message file 
-        if message_file:
-            message_file.delete()
-            return HttpResponse("Message and message file successfully deleted.", status=200)
-
         return HttpResponse("Message successfully deleted.", status=200)
 
         

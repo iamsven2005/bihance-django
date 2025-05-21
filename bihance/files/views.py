@@ -1,5 +1,5 @@
-from .models import Files
-from .serializers import FilesSerializer, FilesCreateInputSerializer, FilesListInputSerializer
+from .models import File
+from .serializers import FileSerializer, FileCreateInputSerializer, FileListInputSerializer
 from applications.models import User, Job
 from companies.models import EmployerProfile
 from django.http import JsonResponse, HttpResponse
@@ -20,7 +20,7 @@ class FilesViewSet(viewsets.ModelViewSet):
     # GET multiple -> files/
     def list(self, request): 
         # Input validation
-        input_serializer = FilesListInputSerializer(data=request.query_params)
+        input_serializer = FileListInputSerializer(data=request.query_params)
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
@@ -44,16 +44,16 @@ class FilesViewSet(viewsets.ModelViewSet):
         match associated_type: 
             case "Message": 
                 message = Message.objects.get(message_id=associated_object_id)
-                files = Files.objects.filter(associated_message=message)
+                files = File.objects.filter(associated_message=message)
             
-        file_serializer = FilesSerializer(files, many=True)
+        file_serializer = FileSerializer(files, many=True)
         return JsonResponse(file_serializer.data, safe=False)
     
 
     # POST -> files/ 
     def create(self, request): 
         # Input validation
-        input_serializer = FilesCreateInputSerializer(data=request.data)
+        input_serializer = FileCreateInputSerializer(data=request.data)
         if not input_serializer.is_valid(): 
             return HttpResponse(input_serializer.errors, status=400)
 
@@ -76,7 +76,7 @@ class FilesViewSet(viewsets.ModelViewSet):
                 return HttpResponse("No associated object found.", status=400)
             
         # Create the new file record 
-        file = Files(
+        file = File(
             file_key=file_key, 
             file_url=file_url,
             file_name=file_name, 
@@ -97,9 +97,9 @@ class FilesViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk=None):
         # Try to retrieve the file record 
         try: 
-            file = Files.objects.get(file_key=pk)
+            file = File.objects.get(file_key=pk)
             file.delete()
-        except Files.DoesNotExist: 
+        except File.DoesNotExist: 
             return HttpResponse("File key does not exist.", status=400)
 
         return HttpResponse("File successfully deleted.", status=200)

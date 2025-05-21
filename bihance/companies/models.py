@@ -26,7 +26,7 @@ class EmployerProfile(models.Model):
     updated_at = models.DateTimeField(default=timezone.now, db_column='updatedAt')  
 
     class Meta:
-        db_table = 'EmployerProfile'
+        db_table = 'Employer_Profile'
         indexes = [
             models.Index(fields=['employer_id']),
         ]
@@ -41,7 +41,7 @@ class CompanyFollow(models.Model):
     created_at = models.DateTimeField(default=timezone.now, db_column='createdAt')  
 
     class Meta:
-        db_table = 'companyFollow'
+        db_table = 'Company_Follow'
         indexes = [
             models.Index(fields=['follower_id']),
             models.Index(fields=['company_id']),

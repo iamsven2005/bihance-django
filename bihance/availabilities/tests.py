@@ -1,7 +1,7 @@
 # Integration testing (models, serializers, utils, views)
 # Negative test cases? 
 
-from .models import Timings
+from .models import Timing
 from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
@@ -19,7 +19,7 @@ class AvailabilitiesAPITest(TestCase):
         # Performed once before all tests 
         # Create test objects 
         cls.employee = get_employee()
-        cls.employee_availability = Timings.objects.create(
+        cls.employee_availability = Timing.objects.create(
             start_time= timezone.now(), 
             end_time= timezone.now() + timedelta(days=69),
             employee_id=cls.employee,
@@ -47,7 +47,7 @@ class AvailabilitiesAPITest(TestCase):
         }
         response = self.client.post(self.base_url, data, format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Timings.objects.count(), 2)
+        self.assertEqual(Timing.objects.count(), 2)
 
 
     # GET 
@@ -66,12 +66,12 @@ class AvailabilitiesAPITest(TestCase):
     
     # DELETE 
     def test_delete_availabilities(self):
-        availability_id = Timings.objects.all().first().time_id
+        availability_id = Timing.objects.all().first().time_id
         response = self.client.delete(f"{self.base_url}{availability_id}/")
 
         # Changes from each test case, does NOT seem to be propogated
         # Hence, the count after delete is 0, NOT 1
-        self.assertEqual(Timings.objects.count(), 0)
+        self.assertEqual(Timing.objects.count(), 0)
         self.assertEqual(response.status_code, 200)
 
 

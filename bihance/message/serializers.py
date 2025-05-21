@@ -1,4 +1,4 @@
-from .models import Message, MessageFile
+from .models import Message
 from applications.serializers import ApplicationSerializer, UserSerializer
 from django.utils import timezone
 from rest_framework import serializers
@@ -42,37 +42,17 @@ class MessageSerializer(serializers.ModelSerializer):
         ]
    
 
-class MessageFileSerializer(serializers.ModelSerializer): 
-    message = MessageSerializer(source="message_id", read_only=True) 
-    sender = UserSerializer(source="sender_id", read_only=True)
-
-    class Meta:
-        model = MessageFile
-        fields = [
-            'message_file_id', 'message', 'sender', 'file_url',
-            'file_name', 'file_type', 'file_size', 'created_at'
-        ]
-
-
 class MessageCreateInputSerializer(serializers.Serializer): 
-    content = serializers.CharField(required=False)
+    content = serializers.CharField(default="")
     applicationId = serializers.UUIDField()
     replyToId = serializers.UUIDField(required=False)
-    fileUrl = serializers.URLField(required=False)
-    fileName = serializers.CharField(required=False)
+    hasFile = serializers.BooleanField()
 
     def validate(self, data):
         detect_extra_fields(self.initial_data, self.fields)
-        content = data.get("content")
-        file_url = data.get("fileUrl")
-        file_name = data.get("fileName")
+        if not data['content'] and not data['hasFile']: 
+            raise serializers.ValidationError("Text content and file cannot both be missing.")
 
-        if not content and not file_url: 
-            raise serializers.ValidationError("Either text or file must be included in the message.")
-        if file_name and not file_url:
-            raise serializers.ValidationError("File URL must be provided if file name is given.")        
-        if file_url and not file_name: 
-            raise serializers.ValidationError("File name must be provided if file URL is given.")        
         return data
 
 

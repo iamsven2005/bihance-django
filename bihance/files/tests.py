@@ -1,7 +1,7 @@
 # Integration testing (models, serializers, utils, views)
 # Negative test cases? 
 
-from .models import Files
+from .models import File
 from django.test import TestCase
 from rest_framework.test import APIClient
 from utils.utils import terminate_current_connections
@@ -65,17 +65,16 @@ class ApplicationsAPITest(TestCase):
 
         files = response.json()
         for file in files: 
-            print(file)
             verify_file_shape(file)
 
 
     # DELETE
     def delete_files(self): 
-        file = Files.objects.first()
+        file = File.objects.first()
         file_key = file.file_key
 
         response = self.client.delete(f"{self.base_url}{file_key}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Files.objects.count(), 0)
+        self.assertEqual(File.objects.count(), 0)
 
 

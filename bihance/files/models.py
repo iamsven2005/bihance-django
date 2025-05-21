@@ -58,7 +58,7 @@ def create_condition_dictionary(atype):
 # References: 
 # https://abenezer.org/blog/generic-foreign-key-check-constraint
 # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/#alternative-1-nullable-fields-on-source-table
-class Files(models.Model):
+class File(models.Model):
     file_key = models.TextField(primary_key=True, db_column="fileKey")
     file_url = models.URLField(db_column='fileUrl')  
     file_name = models.TextField(db_column='fileName')  
@@ -77,7 +77,7 @@ class Files(models.Model):
     
 
     class Meta:
-        db_table = 'files'
+        db_table = 'File'
         indexes = [
             models.Index(fields=['associated_message']),
             models.Index(fields=['associated_group_message']),
