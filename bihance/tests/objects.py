@@ -1,4 +1,5 @@
 from applications.models import Application, Job, User
+from message.models import Message
 from datetime import datetime
 from django.utils.timezone import make_aware
 
@@ -20,6 +21,7 @@ def get_employer():
     )
     return employer
 
+
 def get_job(): 
     FIXED_DATE = make_aware(datetime(2025, 1, 1, 12, 0, 0))
     
@@ -34,6 +36,7 @@ def get_job():
     )
     return job
 
+
 def get_application(): 
     application, _ = Application.objects.get_or_create(
         job_id=get_job(),
@@ -42,5 +45,14 @@ def get_application():
         employer_id=get_employer().id
     )
     return application
+
+
+def get_message(): 
+    message, _ = Message.objects.get_or_create(
+        content="Hello World", 
+        application_id = get_application(),
+        sender_id = get_employee(),
+    )
+    return message
 
 

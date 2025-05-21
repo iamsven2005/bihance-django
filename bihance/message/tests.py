@@ -101,8 +101,8 @@ class ApplicationsAPITest(TestCase):
             "applicationId": self.application.application_id,
             "newContent": "No Inshallah"
         }
-        message_id = Message.objects.all()[1].message_id + "/"
-        response = self.client.patch(f"{self.base_url}{message_id}", data, format="json")
+        message_id = Message.objects.all()[1].message_id
+        response = self.client.patch(f"{self.base_url}{message_id}/", data, format="json")
         self.assertEqual(response.status_code, 200)
         
 
@@ -111,8 +111,8 @@ class ApplicationsAPITest(TestCase):
     def delete_message(self): 
         # Delete Msg 1
         self.auth_employee()
-        message_id = Message.objects.all()[0].message_id + "/"
-        response = self.client.delete(f"{self.base_url}{message_id}")
+        message_id = Message.objects.all()[0].message_id
+        response = self.client.delete(f"{self.base_url}{message_id}/")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Message.objects.count(), 2)
