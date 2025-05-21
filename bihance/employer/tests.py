@@ -4,8 +4,8 @@
 from companies.models import EmployerProfile
 from django.test import TestCase
 from rest_framework.test import APIClient
-from tests.objects import get_employer
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employer
 
 
 terminate_current_connections()

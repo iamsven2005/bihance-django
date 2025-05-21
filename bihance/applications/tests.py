@@ -4,9 +4,9 @@
 from .models import Application
 from django.test import TestCase
 from rest_framework.test import APIClient
-from tests.objects import get_employee, get_employer, get_job, get_application
-from tests.utils import verify_application_shape
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee, get_employer, get_job, get_application
+from utils.tests.utils import verify_application_shape
 
 
 terminate_current_connections()
@@ -70,15 +70,15 @@ class ApplicationsAPITest(TestCase):
         data = {
             "newStatus": 3,
         }
-        response = self.client.patch(f'{self.base_url}{applicationId + "/"}', data, format='json')
+        response = self.client.patch(f'{self.base_url}{applicationId}/', data, format='json')
         self.assertEqual(response.status_code, 200)
 
 
     # DELETE
     def test_delete_application(self):
         self.auth_employee()
-        applicationId = Application.objects.first().application_id + "/"
-        response = self.client.delete(f'{self.base_url}{applicationId}')
+        applicationId = Application.objects.first().application_id
+        response = self.client.delete(f'{self.base_url}{applicationId}/')
         self.assertEqual(response.status_code, 200)
 
 

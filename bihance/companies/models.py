@@ -24,7 +24,6 @@ class EmployerProfile(models.Model):
     featured_partner = models.BooleanField(default=False, db_column='featuredPartner')  
     created_at = models.DateTimeField(default=timezone.now, db_column='createdAt')  
     updated_at = models.DateTimeField(default=timezone.now, db_column='updatedAt')  
-    image_url = models.URLField(blank=True, null=True, db_column='image')
 
     class Meta:
         db_table = 'EmployerProfile'

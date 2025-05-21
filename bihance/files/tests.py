@@ -4,9 +4,9 @@
 from .models import Files
 from django.test import TestCase
 from rest_framework.test import APIClient
-from tests.objects import get_employee, get_employer, get_job, get_application, get_message
-from tests.utils import verify_file_shape
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee, get_employer, get_job, get_application, get_message
+from utils.tests.utils import verify_file_shape
 
 
 terminate_current_connections()
@@ -35,6 +35,7 @@ class ApplicationsAPITest(TestCase):
         self.create_file()
         self.get_files()
         self.delete_files()
+
 
     # POST
     def create_file(self): 

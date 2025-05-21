@@ -59,9 +59,7 @@ class EmployerCreateInputSerializer(serializers.Serializer):
     )
     hiringTimeline = serializers.CharField(required=False)
     featuredPartner = serializers.BooleanField(required=False)
-    imageUrl = serializers.URLField(required=False)
-
-
+    
     def validate(self, data): 
         data = validate_company_record(self.initial_data, self.fields, data)
         return data
@@ -95,8 +93,6 @@ class EmployerPartialUpdateInputSerializer(serializers.Serializer):
     )
     hiringTimeline = serializers.CharField(required=False)
     featuredPartner = serializers.BooleanField(required=False)
-    imageUrl = serializers.URLField(required=False)
-
 
     def validate(self, data): 
         data = validate_company_record(self.initial_data, self.fields, data)

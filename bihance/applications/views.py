@@ -136,7 +136,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         return HttpResponse(f"Application created successfully with application id: {new_application_id}.", status=200) 
 
 
-    # PATCH -> applications/application_id
+    # PATCH -> applications/:application_id
     def partial_update(self, request, pk=None): 
         # Input validation
         input_serializer_class = self.get_input_serializer_class()
@@ -202,7 +202,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             return HttpResponse("Application bio successfully updated.", status=200)
 
 
-    # DELETE -> applications/application_id
+    # DELETE -> applications/:application_id
     def destroy(self, request, pk=None): 
         # User should be EMPLOYEE 
         is_employee = check_is_employee(request.user.id)

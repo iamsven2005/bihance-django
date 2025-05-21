@@ -36,7 +36,6 @@ class EmployerViewSet(viewsets.ViewSet):
         work_style = validated_data.get("workStyle")
         hiring_timeline = validated_data.get("hiringTimeline")
         featured_partner = validated_data.get("featuredPartner")
-        image_url = validated_data.get("imageUrl") 
         
         # Check if the employer profile exists already 
         try: 
@@ -64,14 +63,13 @@ class EmployerViewSet(viewsets.ViewSet):
             work_style=work_style if work_style else None,
             hiring_timeline=hiring_timeline if hiring_timeline else None,
             featured_partner=featured_partner if featured_partner else False,
-            image_url=image_url if image_url else None
         )
         company_id = employer_company.company_id
 
         return HttpResponse(f"Employer profile successfully created with company id: {company_id}.", status=200)
 
 
-    # PATCH -> employer/company_id
+    # PATCH -> employer/:company_id
     def partial_update(self, request, pk=None): 
         # User verification
         is_employer = check_is_employer(request.user.id)
@@ -103,8 +101,8 @@ class EmployerViewSet(viewsets.ViewSet):
             "workStyle": "work_style",
             "hiringTimeline": "hiring_timeline",
             "featuredPartner": "featured_partner",
-            "imageUrl": "image_url",
         }       
+        
         for key, value in validated_data.items(): 
             model_field = data_key_to_model_field_mapping[key]
             setattr(employer_company, model_field, value)

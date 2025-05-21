@@ -100,7 +100,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         return HttpResponse(f"Availability created successfully with availability_id: {new_availability_id}.", status=200) 
 
 
-    # DELETE -> availability/availability_id
+    # DELETE -> availability/:availability_id
     def destroy(self, request, pk=None): 
         # User verification
         is_employee = check_is_employee(request.user.id)

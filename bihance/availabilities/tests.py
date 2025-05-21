@@ -6,9 +6,9 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
-from tests.objects import get_employee
-from tests.utils import verify_availability_shape
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee
+from utils.tests.utils import verify_availability_shape
 
 
 terminate_current_connections()
@@ -66,8 +66,8 @@ class AvailabilitiesAPITest(TestCase):
     
     # DELETE 
     def test_delete_availabilities(self):
-        availability_id = Timings.objects.all().first().time_id + "/"
-        response = self.client.delete(f"{self.base_url}{availability_id}")
+        availability_id = Timings.objects.all().first().time_id
+        response = self.client.delete(f"{self.base_url}{availability_id}/")
 
         # Changes from each test case, does NOT seem to be propogated
         # Hence, the count after delete is 0, NOT 1

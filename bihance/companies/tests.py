@@ -4,9 +4,9 @@
 from .models import EmployerProfile
 from django.test import TestCase
 from rest_framework.test import APIClient
-from tests.objects import get_employee, get_employer, get_job
-from tests.utils import verify_employer_profile_shape, verify_job_shape
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee, get_employer, get_job
+from utils.tests.utils import verify_employer_profile_shape, verify_job_shape
 
 
 terminate_current_connections()
@@ -40,9 +40,19 @@ class CompaniesAPITest(TestCase):
 
         companies = response.json()
         for company in companies: 
-            verify_employer_profile_shape(company)
+            # Top level fields
+            self.assertIn("company", company)
+            self.assertIn("jobs", company)
 
+            # Nested fields
+            company_info = company["company"]
+            verify_employer_profile_shape(company_info)
 
+            jobs_info = company["jobs"]
+            for job_info in jobs_info:
+                verify_job_shape(job_info)
+
+            
     # GET single company
     def test_get_company(self): 
         response = self.client.get(f"{self.base_url}{self.employer_profile.company_id}/")

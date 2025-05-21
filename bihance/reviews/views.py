@@ -8,7 +8,7 @@ from utils.utils import get_user_and_application, validate_user_in_application, 
 class ReviewsViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
-    # PATCH -> reviews/application_id
+    # PATCH -> reviews/:application_id
     def partial_update(self, request, pk=None): 
         # User verification
         user, application = get_user_and_application(user_id=request.user.id, application_id=pk)

@@ -3,8 +3,8 @@
 
 from django.test import TestCase
 from rest_framework.test import APIClient
-from tests.objects import get_employee, get_employer, get_job, get_application
 from utils.utils import terminate_current_connections
+from utils.tests.objects import get_employee, get_employer, get_job, get_application
 
 
 terminate_current_connections()
@@ -29,6 +29,7 @@ class ReviewsAPITest(TestCase):
     def auth_employer(self): 
         self.client = APIClient() 
         self.client.force_authenticate(user=self.employer)
+
 
     # PATCH
     def test_update_review(self): 
