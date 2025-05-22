@@ -1,11 +1,11 @@
 # Testing related utils
-# .get_fields() automatically removes the excluded fields? 
 
 from applications.serializers import UserSerializer, JobSerializer, ApplicationSerializer
 from availabilities.serializers import AvailabilitySerializer
 from companies.serializers import EmployerProfileSerializer, CompanyFollowSerializer
-from message.serializers import MessageSerializer
 from files.serializers import FileSerializer
+from jobs.serializers import JobRequirementSerializer
+from message.serializers import MessageSerializer
 
 
 # Verify shape of User JSON object
@@ -30,6 +30,15 @@ def verify_job_shape(job):
             verify_user_shape(employer)
 
 
+# Verify shape of Job Requirement JSON object 
+def verify_job_requirement_shape(job_requirement): 
+    expected_fields = JobRequirementSerializer().get_fields().keys()
+    
+    assert isinstance(job_requirement, dict), f"Expected job requirement to be dict, got {type(job_requirement)} instead."
+    for field in expected_fields: 
+        assert field in job_requirement, f"Missing field {field} in job_requirement."
+
+     
 # Verify shape of Application JSON object
 def verify_application_shape(application):
     expected_fields = ApplicationSerializer().get_fields().keys()

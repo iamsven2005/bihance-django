@@ -17,8 +17,8 @@ from utils.utils import check_is_employer
 
 def remap_keys(input_dict, mapping): 
     result = {}
-    for key, value in input_dict.items(): 
-        model_field = mapping.get(key)
+    for input_field, value in input_dict.items(): 
+        model_field = mapping.get(input_field)
         if model_field: 
             # Ignore the keys that do not correspond to a model_field
             result[model_field] = value
@@ -288,7 +288,7 @@ class JobsViewSet(viewsets.ModelViewSet):
         
         result = []
         employer = User.objects.get(id=request.user.id)
-        jobs = Job.objects.prefetch_related("application_set", "jobrequirement_set").filter(employer_id=employer).order_by("-posted-date")
+        jobs = Job.objects.prefetch_related("application_set", "jobrequirement_set").filter(employer_id=employer).order_by("-posted_date")
 
         for job in jobs:
             job_serializer = JobSerializer(job)
