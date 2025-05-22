@@ -3,6 +3,7 @@ from availabilities.views import AvailabilitiesViewSet
 from companies.views import CompanyViewSet
 from employer.views import EmployerViewSet
 from files.views import FilesViewSet
+from jobs.views import JobsViewSet
 from message.views import MessageViewSet
 from reviews.views import ReviewsViewSet
 
@@ -16,9 +17,10 @@ router.register(r"applications", ApplicationsViewSet, "applications")
 router.register(r"availabilities", AvailabilitiesViewSet, "availabilities")
 router.register(r"companies", CompanyViewSet, "companies")
 router.register(r"employer", EmployerViewSet, "employer")
+router.register(r"files", FilesViewSet, "files")
+router.register(r"jobs", JobsViewSet, "jobs")
 router.register(r"messages", MessageViewSet, "messages")
 router.register(r"reviews", ReviewsViewSet, "reviews")
-router.register(r"files", FilesViewSet, "files")
 
 
 urlpatterns = [

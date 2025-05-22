@@ -6,15 +6,31 @@ from django.utils import timezone
 
 
 class UserRole(models.TextChoices):
-    ADMIN = 'admin', 'Admin'
-    USER = 'user', 'User'
+    ADMIN = 'Admin'
+    USER = 'User'
 
 class JobType(models.TextChoices):
-    FULL_TIME = 'FULL_TIME', 'Full Time'
-    PART_TIME = 'PART_TIME', 'Part Time'
-    CONTRACT = 'CONTRACT', 'Contract'
-    TEMPORARY = 'TEMPORARY', 'Temporary'
-    INTERNSHIP = 'INTERNSHIP', 'Internship'
+    FULL_TIME = 'FULL_TIME'
+    PART_TIME = 'PART_TIME'
+    CONTRACT = 'CONTRACT'
+    TEMPORARY = 'TEMPORARY'
+    INTERNSHIP = 'INTERNSHIP'
+
+class DurationType(models.TextChoices): 
+    LESS_THAN_1_MONTH = "Less than 1 month"
+    ONE_TO_THREE_MONTHS = "1-3 months"
+    THREE_TO_SIX_MONTHS = "3-6 months"
+    SIX_TO_TWELVE_MONTHS = "6-12 months"
+    ONE_PLUS_YEAR = "1+ year"
+    ONGOING = "Ongoing"
+
+class PayType(models.TextChoices): 
+    HOURLY = "Hourly"
+    DAILY = "Daily"
+    WEEKLY = "Weekly"
+    MONTHLY = "Monthly"
+    PROJECT_BASED = "Project-based"
+    NEGOTIABLE = "Negotiable"
 
 
 class User(AbstractUser):    
@@ -70,15 +86,17 @@ class Job(models.Model):
     posted_date = models.DateTimeField(db_column="PostedDate")
     start_age = models.IntegerField(null=True, blank=True, db_column="Startage")
     end_age = models.IntegerField(null=True, blank=True, db_column="Endage")
+
+    # True -> Female, # False -> Male
     gender = models.BooleanField(null=True, blank=True, db_column="Gender")
 
     location = models.JSONField(null=True, blank=True)
-    job_type = models.CharField(max_length=20, choices=JobType.choices, null=True, blank=True, db_column="jobType")
+    job_type = models.CharField(choices=JobType.choices, null=True, blank=True, db_column="jobType")
     location_name = models.TextField(null=True, blank=True, db_column="locationName")
     company = models.TextField(null=True, blank=True, db_column="Company")
-    duration = models.TextField(null=True, blank=True, db_column="Duration")  # 6months, 1 year
-    pay_type = models.TextField(null=True, blank=True, db_column="PayType")  # hourly, monthly, contract
-    # Array fields ignored for now 
+    duration = models.TextField(choices=DurationType.choices, null=True, blank=True, db_column="Duration") 
+    pay_type = models.TextField(choices=PayType.choices, null=True, blank=True, db_column="PayType")  
+
 
     class Meta:
         db_table = "Job"
