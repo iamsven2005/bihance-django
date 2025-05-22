@@ -4,30 +4,68 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('applications', '0002_remove_job_photo_url_remove_user_image_url'),
+        ("applications", "0002_remove_job_photo_url_remove_user_image_url"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='job',
-            name='duration',
-            field=models.TextField(blank=True, choices=[('Less than 1 month', 'Less Than 1 Month'), ('1-3 months', 'One To Three Months'), ('3-6 months', 'Three To Six Months'), ('6-12 months', 'Six To Twelve Months'), ('1+ year', 'One Plus Year'), ('Ongoing', 'Ongoing')], db_column='Duration', null=True),
+            model_name="job",
+            name="duration",
+            field=models.TextField(
+                blank=True,
+                choices=[
+                    ("Less than 1 month", "Less Than 1 Month"),
+                    ("1-3 months", "One To Three Months"),
+                    ("3-6 months", "Three To Six Months"),
+                    ("6-12 months", "Six To Twelve Months"),
+                    ("1+ year", "One Plus Year"),
+                    ("Ongoing", "Ongoing"),
+                ],
+                db_column="Duration",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='job',
-            name='job_type',
-            field=models.CharField(blank=True, choices=[('FULL_TIME', 'Full Time'), ('PART_TIME', 'Part Time'), ('CONTRACT', 'Contract'), ('TEMPORARY', 'Temporary'), ('INTERNSHIP', 'Internship')], db_column='jobType', null=True),
+            model_name="job",
+            name="job_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("FULL_TIME", "Full Time"),
+                    ("PART_TIME", "Part Time"),
+                    ("CONTRACT", "Contract"),
+                    ("TEMPORARY", "Temporary"),
+                    ("INTERNSHIP", "Internship"),
+                ],
+                db_column="jobType",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='job',
-            name='pay_type',
-            field=models.TextField(blank=True, choices=[('Hourly', 'Hourly'), ('Daily', 'Daily'), ('Weekly', 'Weekly'), ('Monthly', 'Monthly'), ('Project-based', 'Project Based'), ('Negotiable', 'Negotiable')], db_column='PayType', null=True),
+            model_name="job",
+            name="pay_type",
+            field=models.TextField(
+                blank=True,
+                choices=[
+                    ("Hourly", "Hourly"),
+                    ("Daily", "Daily"),
+                    ("Weekly", "Weekly"),
+                    ("Monthly", "Monthly"),
+                    ("Project-based", "Project Based"),
+                    ("Negotiable", "Negotiable"),
+                ],
+                db_column="PayType",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('Admin', 'Admin'), ('User', 'User')], default='User', max_length=20),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[("Admin", "Admin"), ("User", "User")],
+                default="User",
+                max_length=20,
+            ),
         ),
     ]

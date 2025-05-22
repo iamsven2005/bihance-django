@@ -9,7 +9,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -18,61 +17,157 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='EmployerProfile',
+            name="EmployerProfile",
             fields=[
-                ('company_id', models.TextField(db_column='id', default=uuid.uuid4, max_length=36, primary_key=True, serialize=False)),
-                ('company_name', models.TextField(db_column='companyName')),
-                ('company_website', models.URLField(db_column='companyWebsite')),
-                ('contact_name', models.TextField(blank=True, db_column='contactName', null=True)),
-                ('contact_role', models.TextField(blank=True, db_column='contactRole', null=True)),
-                ('company_size', models.TextField(blank=True, db_column='companySize', null=True)),
-                ('industry', models.TextField(blank=True, null=True)),
-                ('talent_needs', django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, db_column='talentNeeds', null=True, size=None)),
-                ('work_style', django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, db_column='workStyle', null=True, size=None)),
-                ('hiring_timeline', models.TextField(blank=True, db_column='hiringTimeline', null=True)),
-                ('featured_partner', models.BooleanField(db_column='featuredPartner', default=False)),
-                ('created_at', models.DateTimeField(db_column='createdAt', default=django.utils.timezone.now)),
-                ('updated_at', models.DateTimeField(db_column='updatedAt', default=django.utils.timezone.now)),
-                ('employer_id', models.ForeignKey(db_column='userId', on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    "company_id",
+                    models.TextField(
+                        db_column="id",
+                        default=uuid.uuid4,
+                        max_length=36,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("company_name", models.TextField(db_column="companyName")),
+                ("company_website", models.URLField(db_column="companyWebsite")),
+                (
+                    "contact_name",
+                    models.TextField(blank=True, db_column="contactName", null=True),
+                ),
+                (
+                    "contact_role",
+                    models.TextField(blank=True, db_column="contactRole", null=True),
+                ),
+                (
+                    "company_size",
+                    models.TextField(blank=True, db_column="companySize", null=True),
+                ),
+                ("industry", models.TextField(blank=True, null=True)),
+                (
+                    "talent_needs",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.TextField(),
+                        blank=True,
+                        db_column="talentNeeds",
+                        null=True,
+                        size=None,
+                    ),
+                ),
+                (
+                    "work_style",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.TextField(),
+                        blank=True,
+                        db_column="workStyle",
+                        null=True,
+                        size=None,
+                    ),
+                ),
+                (
+                    "hiring_timeline",
+                    models.TextField(blank=True, db_column="hiringTimeline", null=True),
+                ),
+                (
+                    "featured_partner",
+                    models.BooleanField(db_column="featuredPartner", default=False),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        db_column="createdAt", default=django.utils.timezone.now
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        db_column="updatedAt", default=django.utils.timezone.now
+                    ),
+                ),
+                (
+                    "employer_id",
+                    models.ForeignKey(
+                        db_column="userId",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'Employer_Profile',
+                "db_table": "Employer_Profile",
             },
         ),
         migrations.CreateModel(
-            name='CompanyFollow',
+            name="CompanyFollow",
             fields=[
-                ('follow_id', models.TextField(db_column='id', default=uuid.uuid4, max_length=36, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(db_column='createdAt', default=django.utils.timezone.now)),
-                ('follower_id', models.ForeignKey(db_column='userId', on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
-                ('company_id', models.ForeignKey(db_column='companyId', on_delete=django.db.models.deletion.DO_NOTHING, to='companies.employerprofile')),
+                (
+                    "follow_id",
+                    models.TextField(
+                        db_column="id",
+                        default=uuid.uuid4,
+                        max_length=36,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        db_column="createdAt", default=django.utils.timezone.now
+                    ),
+                ),
+                (
+                    "follower_id",
+                    models.ForeignKey(
+                        db_column="userId",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "company_id",
+                    models.ForeignKey(
+                        db_column="companyId",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="companies.employerprofile",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'Company_Follow',
+                "db_table": "Company_Follow",
             },
         ),
         migrations.AddIndex(
-            model_name='employerprofile',
-            index=models.Index(fields=['employer_id'], name='Employer_Pr_userId_ee22a0_idx'),
+            model_name="employerprofile",
+            index=models.Index(
+                fields=["employer_id"], name="Employer_Pr_userId_ee22a0_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='employerprofile',
-            unique_together={('employer_id', 'company_name', 'company_website')},
+            name="employerprofile",
+            unique_together={("employer_id", "company_name", "company_website")},
         ),
         migrations.AddIndex(
-            model_name='companyfollow',
-            index=models.Index(fields=['follower_id'], name='Company_Fol_userId_d01f76_idx'),
+            model_name="companyfollow",
+            index=models.Index(
+                fields=["follower_id"], name="Company_Fol_userId_d01f76_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='companyfollow',
-            index=models.Index(fields=['company_id'], name='Company_Fol_company_198d1f_idx'),
+            model_name="companyfollow",
+            index=models.Index(
+                fields=["company_id"], name="Company_Fol_company_198d1f_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='companyfollow',
-            index=models.Index(fields=['follower_id', 'company_id'], name='Company_Fol_userId_01056b_idx'),
+            model_name="companyfollow",
+            index=models.Index(
+                fields=["follower_id", "company_id"],
+                name="Company_Fol_userId_01056b_idx",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='companyfollow',
-            unique_together={('follower_id', 'company_id')},
+            name="companyfollow",
+            unique_together={("follower_id", "company_id")},
         ),
     ]

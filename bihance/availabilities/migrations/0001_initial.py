@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,18 +15,36 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Timing',
+            name="Timing",
             fields=[
-                ('time_id', models.TextField(db_column='timeId', default=uuid.uuid4, max_length=36, primary_key=True, serialize=False)),
-                ('start_time', models.DateTimeField(db_column='Starttime')),
-                ('end_time', models.DateTimeField(db_column='Endtime')),
-                ('title', models.TextField(blank=True, db_column='Title', null=True)),
-                ('employee_id', models.ForeignKey(db_column='id', on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    "time_id",
+                    models.TextField(
+                        db_column="timeId",
+                        default=uuid.uuid4,
+                        max_length=36,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("start_time", models.DateTimeField(db_column="Starttime")),
+                ("end_time", models.DateTimeField(db_column="Endtime")),
+                ("title", models.TextField(blank=True, db_column="Title", null=True)),
+                (
+                    "employee_id",
+                    models.ForeignKey(
+                        db_column="id",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'Timing',
-                'indexes': [models.Index(fields=['employee_id'], name='Timing_id_477a25_idx')],
-                'unique_together': {('start_time', 'end_time', 'employee_id')},
+                "db_table": "Timing",
+                "indexes": [
+                    models.Index(fields=["employee_id"], name="Timing_id_477a25_idx")
+                ],
+                "unique_together": {("start_time", "end_time", "employee_id")},
             },
         ),
     ]

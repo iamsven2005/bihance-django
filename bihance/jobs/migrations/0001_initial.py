@@ -6,24 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('applications', '0002_remove_job_photo_url_remove_user_image_url'),
+        ("applications", "0002_remove_job_photo_url_remove_user_image_url"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='JobRequirement',
+            name="JobRequirement",
             fields=[
-                ('requirement_id', models.TextField(db_column='id', default=uuid.uuid4, max_length=36, primary_key=True, serialize=False)),
-                ('name', models.TextField()),
-                ('job_id', models.ForeignKey(db_column='jobId', on_delete=django.db.models.deletion.DO_NOTHING, to='applications.job')),
+                (
+                    "requirement_id",
+                    models.TextField(
+                        db_column="id",
+                        default=uuid.uuid4,
+                        max_length=36,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.TextField()),
+                (
+                    "job_id",
+                    models.ForeignKey(
+                        db_column="jobId",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="applications.job",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'Job_Requirement',
-                'indexes': [models.Index(fields=['job_id'], name='Job_Require_jobId_a6dcd2_idx')],
+                "db_table": "Job_Requirement",
+                "indexes": [
+                    models.Index(fields=["job_id"], name="Job_Require_jobId_a6dcd2_idx")
+                ],
             },
         ),
     ]

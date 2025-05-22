@@ -1,16 +1,21 @@
 # Integration testing (models, serializers, utils, views)
-# Negative test cases? 
+# Negative test cases?
 
 from applications.models import Job
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
+from utils.tests.objects import get_application, get_employee, get_employer, get_job
+from utils.tests.utils import (
+    verify_application_shape,
+    verify_file_shape,
+    verify_job_requirement_shape,
+    verify_job_shape,
+)
 from utils.utils import terminate_current_connections
-from utils.tests.objects import get_employee, get_employer, get_job, get_application
-from utils.tests.utils import verify_application_shape, verify_job_shape, verify_job_requirement_shape, verify_file_shape
-
 
 terminate_current_connections()
+
 
 class ApplicationsAPITest(TestCase):
     @classmethod
@@ -25,48 +30,44 @@ class ApplicationsAPITest(TestCase):
         cls.application = get_application()
 
         # Base url for all applications endpoint
-        cls.base_url = '/api/jobs/'
+        cls.base_url = "/api/jobs/"
 
-        
-    def auth_employee(self): 
-        self.client = APIClient() 
+    def auth_employee(self):
+        self.client = APIClient()
         self.client.force_authenticate(user=self.employee)
 
-    def auth_employer(self): 
-        self.client = APIClient() 
+    def auth_employer(self):
+        self.client = APIClient()
         self.client.force_authenticate(user=self.employer)
 
-
-    def test_all(self): 
-        self.create_job() 
+    def test_all(self):
+        self.create_job()
         self.get_all_jobs()
         self.get_single_job()
         self.modify_job()
         self.get_filtered_jobs()
         self.get_employer_jobs()
         self.delete_job()
-    
 
     # POST
-    def create_job(self): 
+    def create_job(self):
         # Job 2
         self.auth_employer()
         data = {
             "name": "Professional Clown",
             "startDate": timezone.now(),
             "description": "Must be able to transform into a tree, detect glitch entities.",
-            "jobRequirements": ["funny", "thick-skinned", "frequently showers"]
+            "jobRequirements": ["funny", "thick-skinned", "frequently showers"],
         }
 
         response = self.client.post(self.base_url, data, format="json")
         self.assertEqual(response.status_code, 200)
-        
+
         successText = response.content.decode()
         self.job2_id = successText.split(": ")[1].replace(".", "")
 
-
     # GET multiple
-    def get_all_jobs(self): 
+    def get_all_jobs(self):
         self.auth_employee()
         response = self.client.get(self.base_url)
         self.assertEqual(response.status_code, 200)
@@ -74,7 +75,7 @@ class ApplicationsAPITest(TestCase):
         jobs = response.json()
         self.assertIsInstance(jobs, list)
 
-        for job_info in jobs: 
+        for job_info in jobs:
             # Top level fields
             self.assertIn("job", job_info)
             self.assertIn("applications", job_info)
@@ -88,20 +89,19 @@ class ApplicationsAPITest(TestCase):
             file = job_info["file"]
 
             verify_job_shape(job)
-            
+
             if applications:
-                for application in applications: 
+                for application in applications:
                     verify_application_shape(application)
 
             if job_requirements:
-                for job_requirement in job_requirements: 
+                for job_requirement in job_requirements:
                     verify_job_requirement_shape(job_requirement)
 
-            if file: 
+            if file:
                 verify_file_shape(file)
-                
-        
-    # GET single 
+
+    # GET single
     def get_single_job(self):
         # Get Job 1
         self.auth_employee()
@@ -125,47 +125,41 @@ class ApplicationsAPITest(TestCase):
 
         verify_job_shape(job)
 
-        if applications: 
-            for application in applications: 
+        if applications:
+            for application in applications:
                 verify_application_shape(application)
 
         if job_requirements:
-            for job_requirement in job_requirements: 
+            for job_requirement in job_requirements:
                 verify_job_requirement_shape(job_requirement)
 
-        if file: 
+        if file:
             verify_file_shape(file)
 
-
-    # PATCH 
-    def modify_job(self): 
+    # PATCH
+    def modify_job(self):
         # Modifying Job 1
         self.auth_employer()
-        data = {
-            "name": "HFT Trader",
-            "payType": "Monthly",
-            "salary": "12000"
-        }
+        data = {"name": "HFT Trader", "payType": "Monthly", "salary": "12000"}
 
-        response = self.client.patch(f"{self.base_url}{self.job.job_id}/", data, format="json")
+        response = self.client.patch(
+            f"{self.base_url}{self.job.job_id}/", data, format="json"
+        )
         self.assertEqual(response.status_code, 200)
 
-
-    # GET filtered 
+    # GET filtered
     def get_filtered_jobs(self):
         self.auth_employee()
         response = self.client.get(f"{self.base_url}filtered/?search=funny")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 1)
 
-        
-    # GET employer jobs 
+    # GET employer jobs
     def get_employer_jobs(self):
         self.auth_employer()
         response = self.client.get(f"{self.base_url}employer_jobs/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 2)
-
 
     # DELETE
     def delete_job(self):
@@ -174,6 +168,3 @@ class ApplicationsAPITest(TestCase):
         response = self.client.delete(f"{self.base_url}{self.job2_id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Job.objects.count(), 1)
-        
-
-    
