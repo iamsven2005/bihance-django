@@ -25,10 +25,6 @@ def verify_job_shape(job):
     for field in expected_fields: 
         assert field in job, f"Missing field {field} in job."
 
-        if field == "employer":
-            employer = job[field]
-            verify_user_shape(employer)
-
 
 # Verify shape of Job Requirement JSON object 
 def verify_job_requirement_shape(job_requirement): 
@@ -47,14 +43,6 @@ def verify_application_shape(application):
     for field in expected_fields: 
         assert field in application, f"Missing field {field} in application."
 
-        if field == "job":
-            job = application[field]
-            verify_job_shape(job)
-
-        if field == "employee": 
-            employee = application[field]
-            verify_user_shape(employee)
-
 
 # Verify shape of Availability JSON object 
 def verify_availability_shape(availability): 
@@ -63,10 +51,6 @@ def verify_availability_shape(availability):
     assert isinstance(availability, dict), f"Expected availability to be dict, got {type(availability)} instead."
     for field in expected_fields: 
         assert field in availability, f"Missing field {field} in availability."
-
-        if field == "employee": 
-            employee = availability[field]
-            verify_user_shape(employee)
 
 
 # Verify shape of EmployerProfile JSON object 
@@ -77,10 +61,6 @@ def verify_employer_profile_shape(employer_profile):
     for field in expected_fields: 
         assert field in employer_profile, f"Missing field {field} in employer profile."
 
-        if field == "employer": 
-            employer = employer_profile[field]
-            verify_user_shape(employer) 
-
 
 # Verify shape of CompanyFollow JSON object 
 def verify_company_follow_shape(company_follow): 
@@ -90,14 +70,6 @@ def verify_company_follow_shape(company_follow):
     for field in expected_fields: 
         assert field in company_follow, f"Missing field {field} in company follow."
 
-        if field == "follower": 
-            follower = company_follow[field]
-            verify_user_shape(follower) 
-
-        if field == "company": 
-            company = company_follow[field]
-            verify_employer_profile_shape(company)
-    
 
 # Verify shape of Message JSON object
 def verify_message_shape(message):
@@ -107,18 +79,6 @@ def verify_message_shape(message):
     for field in expected_fields: 
         assert field in message, f"Missing field {field} in message."
 
-        if field == "application": 
-            application = message[field]
-            verify_application_shape(application)
-
-        if field == "sender": 
-            sender = message[field]
-            verify_user_shape(sender)
-
-        if field == "reply_to_message" and message[field]: # Ensure value is not None first
-            reply_to_message = message[field]
-            verify_message_shape(reply_to_message)
-    
 
 # Verify shape of File JSON object 
 def verify_file_shape(file): 

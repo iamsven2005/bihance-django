@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from utils.utils import terminate_current_connections
 from utils.tests.objects import get_employee, get_employer, get_job, get_application
-from utils.tests.utils import verify_application_shape, verify_job_shape, verify_job_requirement_shape
+from utils.tests.utils import verify_application_shape, verify_job_shape, verify_job_requirement_shape, verify_file_shape
 
 
 terminate_current_connections()
@@ -79,19 +79,26 @@ class ApplicationsAPITest(TestCase):
             self.assertIn("job", job_info)
             self.assertIn("applications", job_info)
             self.assertIn("job_requirements", job_info)
+            self.assertIn("file", job_info)
 
             # Nested fields
             job = job_info["job"]
             applications = job_info["applications"]
             job_requirements = job_info["job_requirements"]
+            file = job_info["file"]
 
             verify_job_shape(job)
+            
+            if applications:
+                for application in applications: 
+                    verify_application_shape(application)
 
-            for application in applications: 
-                verify_application_shape(application)
+            if job_requirements:
+                for job_requirement in job_requirements: 
+                    verify_job_requirement_shape(job_requirement)
 
-            for job_requirement in job_requirements: 
-                verify_job_requirement_shape(job_requirement)
+            if file: 
+                verify_file_shape(file)
                 
         
     # GET single 
@@ -108,19 +115,26 @@ class ApplicationsAPITest(TestCase):
         self.assertIn("job", job_info)
         self.assertIn("applications", job_info)
         self.assertIn("job_requirements", job_info)
+        self.assertIn("file", job_info)
 
         # Nested fields
         job = job_info["job"]
         applications = job_info["applications"]
         job_requirements = job_info["job_requirements"]
+        file = job_info["file"]
 
         verify_job_shape(job)
 
-        for application in applications: 
-            verify_application_shape(application)
+        if applications: 
+            for application in applications: 
+                verify_application_shape(application)
 
-        for job_requirement in job_requirements: 
-            verify_job_requirement_shape(job_requirement)
+        if job_requirements:
+            for job_requirement in job_requirements: 
+                verify_job_requirement_shape(job_requirement)
+
+        if file: 
+            verify_file_shape(file)
 
 
     # PATCH 

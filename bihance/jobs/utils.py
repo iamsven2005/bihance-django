@@ -1,0 +1,34 @@
+from .serializers import JobRequirementSerializer
+from applications.serializers import JobSerializer, ApplicationSerializer
+from files.serializers import FileSerializer
+
+
+# Parse Job model object into a JSON object 
+def to_json_object(job): 
+    job_serializer = JobSerializer(job)
+
+    data = {
+        "job": job_serializer.data,
+    }
+
+    if job.application_set.all(): 
+        application_serializer = ApplicationSerializer(job.application_set.all(), many=True)
+        data["applications"] = application_serializer.data
+    else: 
+        data["applications"] = None 
+
+    if job.jobrequirement_set.all(): 
+        job_requirement_serializer = JobRequirementSerializer(job.jobrequirement_set.all(), many=True)
+        data["job_requirements"] = job_requirement_serializer.data
+    else: 
+        data["job_requirements"] = None
+
+    if job.file_set.first(): 
+        file_serializer = FileSerializer(job.file_set.first())
+        data["file"] = file_serializer.data
+    else: 
+        data["file"] = None 
+
+    return data
+
+

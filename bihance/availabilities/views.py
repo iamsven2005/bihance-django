@@ -19,12 +19,8 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         if not is_employee: 
             return HttpResponse("User must be an employee.", status=400)
         
-        # Try to retrieve the employee record 
-        employee_id = request.user.id
-        try: 
-            employee = User.objects.get(id=employee_id)
-        except User.DoesNotExist: 
-            return HttpResponse("No employee corresponding to the availability.", status=404)
+        # Retrieve the employee record 
+        employee = User.objects.get(id=request.user.id)
         
         # Retrieve and validate data
         employee_availabilities = Timing.objects.filter(employee_id=employee).order_by("start_time")

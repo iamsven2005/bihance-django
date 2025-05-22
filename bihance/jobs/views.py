@@ -1,29 +1,14 @@
 from .models import JobRequirement
-from .serializers import (
-    JobRequirementSerializer, JobCreateInputSerializer, 
-    JobPartialUpdateInputSerializer, JobFilteredInputSerializer
-)
+from .serializers import JobCreateInputSerializer, JobPartialUpdateInputSerializer, JobFilteredInputSerializer
+from .utils import to_json_object
 from applications.models import User, Job
-from applications.serializers import JobSerializer, ApplicationSerializer
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from files.models import File
-from files.serializers import FileSerializer
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
-from utils.utils import check_is_employer
-
-
-def remap_keys(input_dict, mapping): 
-    result = {}
-    for input_field, value in input_dict.items(): 
-        model_field = mapping.get(input_field)
-        if model_field: 
-            # Ignore the keys that do not correspond to a model_field
-            result[model_field] = value
-
-    return result
+from utils.utils import check_is_employer, remap_keys
 
 
 class JobsViewSet(viewsets.ModelViewSet): 
@@ -50,29 +35,11 @@ class JobsViewSet(viewsets.ModelViewSet):
     # GET multiple -> jobs/
     def list(self, request): 
         result = []
-        jobs = Job.objects.prefetch_related("application_set", "jobrequirement_set").all().order_by("-posted_date")
+        jobs = Job.objects.prefetch_related("application_set", "jobrequirement_set", "file_set").all().order_by("-posted_date")
 
         for job in jobs:
-            job_serializer = JobSerializer(job)
-            application_serializer = ApplicationSerializer(job.application_set.all(), many=True)
-            job_requirement_serializer = JobRequirementSerializer(job.jobrequirement_set.all(), many=True)
-
-            data = {
-                "job": job_serializer.data,
-                "applications": application_serializer.data,
-                "job_requirements": job_requirement_serializer.data 
-            }
-
-            try:
-                file = File.objects.get(associated_job=job)    
-            except File.DoesNotExist: 
-                file = None 
-
-            if file: 
-                file_serializer = FileSerializer(file)
-                data["file"] = file_serializer.data
-            
-            result.append(data)
+            job_json = to_json_object(job)
+            result.append(job_json)
         
         return JsonResponse(result, safe=False)
  
@@ -84,26 +51,8 @@ class JobsViewSet(viewsets.ModelViewSet):
         except Job.DoesNotExist: 
             return HttpResponse("No job found.", status=400)
 
-        job_serializer = JobSerializer(job)
-        application_serializer = ApplicationSerializer(job.application_set.all(), many=True)
-        job_requirement_serializer = JobRequirementSerializer(job.jobrequirement_set.all(), many=True)
-
-        result = {
-            "job": job_serializer.data,
-            "applications": application_serializer.data,
-            "job_requirements": job_requirement_serializer.data 
-        }
-
-        try:
-            file = File.objects.get(associated_job=job)    
-        except File.DoesNotExist: 
-            file = None 
-
-        if file: 
-            file_serializer = FileSerializer(file)
-            result["file"] = file_serializer.data
-        
-        return JsonResponse(result)
+        job_json = to_json_object(job)
+        return JsonResponse(job_json)
 
 
     # POST -> jobs/
@@ -254,26 +203,8 @@ class JobsViewSet(viewsets.ModelViewSet):
         # Return the filtered result
         result = []
         for job in queryset:
-            job_serializer = JobSerializer(job)
-            application_serializer = ApplicationSerializer(job.application_set.all(), many=True)
-            job_requirement_serializer = JobRequirementSerializer(job.jobrequirement_set.all(), many=True)
-
-            data = {
-                "job": job_serializer.data,
-                "applications": application_serializer.data,
-                "job_requirements": job_requirement_serializer.data 
-            }
-
-            try:
-                file = File.objects.get(associated_job=job)    
-            except File.DoesNotExist: 
-                file = None 
-
-            if file: 
-                file_serializer = FileSerializer(file)
-                data["file"] = file_serializer.data
-            
-            result.append(data)
+            job_json = to_json_object(job)
+            result.append(job_json)
                 
         return JsonResponse(result, safe=False)
 
@@ -291,26 +222,8 @@ class JobsViewSet(viewsets.ModelViewSet):
         jobs = Job.objects.prefetch_related("application_set", "jobrequirement_set").filter(employer_id=employer).order_by("-posted_date")
 
         for job in jobs:
-            job_serializer = JobSerializer(job)
-            application_serializer = ApplicationSerializer(job.application_set.all(), many=True)
-            job_requirement_serializer = JobRequirementSerializer(job.jobrequirement_set.all(), many=True)
-
-            data = {
-                "job": job_serializer.data,
-                "applications": application_serializer.data,
-                "job_requirements": job_requirement_serializer.data 
-            }
-
-            try:
-                file = File.objects.get(associated_job=job)    
-            except File.DoesNotExist: 
-                file = None 
-
-            if file: 
-                file_serializer = FileSerializer(file)
-                data["file"] = file_serializer.data
-            
-            result.append(data)
+            job_json = to_json_object(job)
+            result.append(job_json)
                 
         return JsonResponse(result, safe=False)
 

@@ -1,12 +1,15 @@
 from .models import Application, User, Job
 from .serializers import (
     ApplicationSerializer,
+    JobSerializer,
+    UserSerializer,
     ApplicationListInputSerializer,
     ApplicationCreateInputSerializer,
     ApplicationPartialUpdateInputSerializer,
 )
 from .utils import get_employee_applications, get_all_applications, send_email
 from django.http import HttpResponse, JsonResponse
+from message.serializers import MessageSerializer
 from rest_framework import permissions, viewsets
 from utils.utils import check_is_employee, check_is_employer
 
@@ -53,10 +56,28 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             else: 
                 applications = get_all_applications(user_id=request.user.id, application_status=int(application_status))
 
-        # Serialize each row/record in the data into a dictionary
-        # Return the serialized data! (list of dictionaries)
-        serializer = ApplicationSerializer(applications, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        # Construct the response 
+        response = []
+        for application in applications: 
+            application_serializer = ApplicationSerializer(application)
+            job_serializer = JobSerializer(application.job_id)
+            employee_serializer = UserSerializer(application.employee_id)
+
+            data = { 
+                "application": application_serializer.data,
+                "job": job_serializer.data,
+                "employee": employee_serializer.data
+            }
+
+            if application.message_set.all(): 
+                message_serializer = MessageSerializer(application.message_set.all(), many=True)
+                data["messages"] = message_serializer.data
+            else: 
+                data["messages"] = None
+            
+            response.append(data)
+
+        return JsonResponse(response, safe=False)
 
 
     # POST -> applications/
@@ -117,21 +138,19 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         )
         new_application_id = new_application.application_id
 
-        # Send email to EMPLOYEE 
-        if employee_record.email: 
-            send_email(
-                recipient_list=[employee_record.email],
-                subject="Job Application Submitted", 
-                message=f"You have successfully applied for {job_record.name}."
-            )
+        # Send email to EMPLOYEE  
+        send_email(
+            recipient_list=[employee_record.email],
+            subject="Job Application Submitted", 
+            message=f"You have successfully applied for {job_record.name}."
+        )
         
         # Send email to EMPLOYER 
-        if employer_record.email:
-            send_email(
-                recipient_list=[employer_record.email], 
-                subject="New Job Application",
-                message=f"You have a new job application for {job_id}, from {employee_id}."
-            )
+        send_email(
+            recipient_list=[employer_record.email], 
+            subject="New Job Application",
+            message=f"You have a new job application for {job_id}, from {employee_id}."
+        )
 
         return HttpResponse(f"Application created successfully with application id: {new_application_id}.", status=200) 
 
@@ -145,11 +164,11 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             return HttpResponse(input_serializer.errors, status=400)
         
         validated_data = input_serializer.validated_data
-        new_status = validated_data.get("newStatus")
-        new_bio = validated_data.get("newBio")
+        application_status = validated_data.get("applicationStatus")
+        bio = validated_data.get("bio")
         
-        if new_status:
-            assert(new_bio is None)
+        if application_status:
+            assert(bio is None)
 
             # User should be EMPLOYER
             is_employer = check_is_employer(request.user.id)
@@ -158,43 +177,42 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             
             # Try to retrieve the application record     
             try: 
-                application_to_update = Application.objects.get(application_id=pk)
+                application = Application.objects.get(application_id=pk)
 
                 # Quirky Django behaviour 
                 # When accessing FK field, doesnt give FK value, gives the entire PK object!
-                job_id = application_to_update.job_id.job_id        
+                job_id = application.job_id.job_id        
                 job_name = Job.objects.get(job_id=job_id).name
-                employee_id = application_to_update.employee_id.id
+                employee_id = application.employee_id.id
                 employee_email = User.objects.get(id=employee_id).email
 
-                application_to_update.accept = new_status
-                application_to_update.save()
+                application.accept = application_status
+                application.save()
 
             except Application.DoesNotExist: 
                 return HttpResponse(f"Application with {pk} not found.", status=404)
             
             # Send confirmation email to EMPLOYEE
-            if new_status == 2:
+            if application_status == 2:
                 email_message = f"Congratulations, you have been accepted for {job_name}."
-            else: 
+            if application_status == 3: 
                 email_message = f"Sorry, you have been rejected from {job_name}."
 
-            if employee_email: 
-                send_email(
-                    recipient_list=[employee_email],
-                    subject="Job Application Outcome",
-                    message=email_message
-                )
+            send_email(
+                recipient_list=[employee_email],
+                subject="Job Application Outcome",
+                message=email_message
+            )
             return HttpResponse("Application status successfully updated.", status=200)
         
         else: 
-            assert(new_bio is not None)
+            assert(bio is not None)
 
             # Try to retrieve the application record     
             try: 
-                application_to_update = Application.objects.get(application_id=pk)
-                application_to_update.bio = new_bio
-                application_to_update.save()
+                application = Application.objects.get(application_id=pk)
+                application.bio = bio
+                application.save()
 
             except Application.DoesNotExist: 
                 return HttpResponse(f"Application with {pk} not found.", status=404)
@@ -220,12 +238,11 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             return HttpResponse(f'Application with {pk} not found.', status=404)
         
         # Send confirmation email to EMPLOYEE
-        if request.user.email:
-            send_email(
-                recipient_list=[request.user.email],
-                subject="Job Application Withdrawn",
-                message=f'You have successfully withdrawn from {job_name}.'
-            )
+        send_email(
+            recipient_list=[request.user.email],
+            subject="Job Application Withdrawn",
+            message=f'You have successfully withdrawn from {job_name}.'
+        )
         
         return HttpResponse("Application successfully deleted.", status=200)
         

@@ -53,4 +53,15 @@ def validate_user_in_application(user, application):
         return True
     
 
-    
+# Remap keys in the dictionary of validated inputs 
+# From input_fields to model_fields
+# Usually for POST or PATCH
+def remap_keys(input_dict, mapping): 
+    result = {}
+    for input_field, value in input_dict.items(): 
+        model_field = mapping.get(input_field)
+        if model_field: 
+            # Ignore the keys that do not correspond to a model_field
+            result[model_field] = value
+
+    return result

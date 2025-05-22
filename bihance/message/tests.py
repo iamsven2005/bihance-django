@@ -7,7 +7,7 @@ from files.models import File
 from rest_framework.test import APIClient
 from utils.utils import terminate_current_connections
 from utils.tests.objects import get_employee, get_employer, get_job, get_application, get_message
-from utils.tests.utils import verify_message_shape, verify_file_shape
+from utils.tests.utils import verify_message_shape, verify_file_shape, verify_application_shape
 
 
 terminate_current_connections()
@@ -86,24 +86,27 @@ class ApplicationsAPITest(TestCase):
         self.assertIsInstance(messages, list)
         self.assertEqual(len(messages), 2)
 
-        for message in messages: 
-            self.assertIsInstance(message, dict)
-            self.assertIn("message", message)
+        for message_info in messages: 
+            # Top level fields 
+            self.assertIsInstance(message_info, dict)
+            self.assertIn("message", message_info)
+            self.assertIn("application", message_info)
+            self.assertIn("reply_to_message", message_info)
+            self.assertIn("file", message_info)
 
-            message_info = message['message']
-            if message_info['content'] == "Hello World": 
-                # Employee message, no files
-                self.assertNotIn("files", message)
-            else: 
-                # Employer message, got files
-                self.assertIn("files", message)
-                
-            verify_message_shape(message_info)
+            message = message_info["message"]
+            verify_message_shape(message)
 
-            message_files = message.get("files")
-            if message_files: 
-                for file in message_files: 
-                    verify_file_shape(file)
+            application = message_info["application"]
+            verify_application_shape(application)
+
+            reply_to_message = message_info["reply_to_message"]
+            if reply_to_message: 
+                verify_message_shape(reply_to_message)
+
+            file = message_info["file"]
+            if file: 
+                verify_file_shape(file)
 
                     
     # PATCH
@@ -112,7 +115,7 @@ class ApplicationsAPITest(TestCase):
         self.auth_employer()
         data = {
             "applicationId": self.application.application_id,
-            "newContent": "No Inshallah"
+            "content": "No Inshallah"
         }
         message_id = Message.objects.all()[1].message_id
         response = self.client.patch(f"{self.base_url}{message_id}/", data, format="json")

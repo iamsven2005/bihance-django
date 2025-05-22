@@ -1,5 +1,4 @@
 from .models import Message
-from applications.serializers import ApplicationSerializer, UserSerializer
 from django.utils import timezone
 from rest_framework import serializers
 from utils.utils import detect_extra_fields
@@ -24,22 +23,13 @@ class MessageListInputSerializer(serializers.Serializer):
     
 # Takes a model object 
 class MessageSerializer(serializers.ModelSerializer):
-    application = ApplicationSerializer(source="application_id", read_only=True)
-    sender = UserSerializer(source="sender_id", read_only=True)
-    reply_to_message = serializers.SerializerMethodField()
-
-    def get_reply_to_message(self, obj):
-        # obj -> model object being serialized
-        if obj.reply_to_id:
-            return MessageSerializer(obj.reply_to_id, context=self.context).data
-        return None
-
     class Meta:
         model = Message
         fields = [
-           'message_id', 'content', 'date', 'application', 'sender', 
-           'is_edited', 'is_deleted', 'last_edited_at', 'reply_to_message'
+           'message_id', 'content', 'date', 'application_id', 'sender_id', 
+           'is_edited', 'is_deleted', 'last_edited_at', 'reply_to_id'
         ]
+        depth = 0
    
 
 class MessageCreateInputSerializer(serializers.Serializer): 
@@ -52,12 +42,12 @@ class MessageCreateInputSerializer(serializers.Serializer):
         detect_extra_fields(self.initial_data, self.fields)
         if not data['content'] and not data['hasFile']: 
             raise serializers.ValidationError("Text content and file cannot both be missing.")
-
+        
         return data
 
 
 class MessagePartialUpdateInputSerializer(serializers.Serializer): 
-    newContent = serializers.CharField()
+    content = serializers.CharField()
     applicationId = serializers.UUIDField()
 
     def validate(self, data): 

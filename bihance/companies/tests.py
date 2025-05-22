@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from utils.utils import terminate_current_connections
 from utils.tests.objects import get_employee, get_employer, get_job
-from utils.tests.utils import verify_employer_profile_shape, verify_job_shape
+from utils.tests.utils import verify_user_shape, verify_employer_profile_shape, verify_job_shape, verify_file_shape
 
 
 terminate_current_connections()
@@ -39,18 +39,28 @@ class CompaniesAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         companies = response.json()
-        for company in companies: 
+        for company_info in companies: 
             # Top level fields
-            self.assertIn("company", company)
-            self.assertIn("jobs", company)
+            self.assertIn("company", company_info)
+            self.assertIn("employer", company_info)
+            self.assertIn("jobs", company_info)
+            self.assertIn("file", company_info)
 
             # Nested fields
-            company_info = company["company"]
-            verify_employer_profile_shape(company_info)
+            company = company_info["company"]
+            verify_employer_profile_shape(company)
 
-            jobs_info = company["jobs"]
-            for job_info in jobs_info:
-                verify_job_shape(job_info)
+            employer = company_info["employer"]
+            verify_user_shape(employer)
+            
+            jobs = company_info["jobs"]
+            if jobs: 
+                for job in jobs: 
+                    verify_job_shape(job)
+
+            file = company_info["file"]
+            if file: 
+                verify_file_shape(file)
 
             
     # GET single company
@@ -58,20 +68,30 @@ class CompaniesAPITest(TestCase):
         response = self.client.get(f"{self.base_url}{self.employer_profile.company_id}/")
         self.assertEqual(response.status_code, 200)
 
-        company_and_jobs = response.json()
-        self.assertIsInstance(company_and_jobs, dict)
+        company_info = response.json()
+        self.assertIsInstance(company_info, dict)
 
         # Top level fields
-        self.assertIn("company", company_and_jobs)
-        self.assertIn("jobs", company_and_jobs)
+        self.assertIn("company", company_info)
+        self.assertIn("employer", company_info)
+        self.assertIn("jobs", company_info)
+        self.assertIn("file", company_info)
         
         # Nested fields 
-        company_info = company_and_jobs["company"]
-        verify_employer_profile_shape(company_info)
+        company = company_info["company"]
+        verify_employer_profile_shape(company)
+
+        employer = company_info["employer"]
+        verify_user_shape(employer)
         
-        jobs_info = company_and_jobs["jobs"]
-        for job_info in jobs_info: 
-            verify_job_shape(job_info)
+        jobs = company_info["jobs"]
+        if jobs: 
+            for job in jobs: 
+                verify_job_shape(job)
+
+        file = company_info["file"]
+        if file: 
+            verify_file_shape(file)
 
 
     # Combined testing

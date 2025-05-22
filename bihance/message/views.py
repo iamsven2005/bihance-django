@@ -5,15 +5,23 @@ from .serializers import (
 )
 from .utils import validate_user_is_sender
 from utils.utils import get_user_and_application, validate_user_in_application
+from applications.serializers import ApplicationSerializer
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from rest_framework import permissions, viewsets
 from files.models import File
 from files.serializers import FileSerializer
+from utils.utils import remap_keys
 
 
 class MessageViewSet(viewsets.ModelViewSet): 
     permission_classes = [permissions.IsAuthenticated]
+
+    input_field_to_model_field_mapping = {
+        "content": "content",
+        "applicationId": "application_id", 
+        "replyToId": "reply_to_id"
+    }
 
     def get_input_serializer_class(self): 
         match self.action:
@@ -46,28 +54,37 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("This user is not the employee or employer in the application.", status=403)
             
         # Retrive messages
+        queryset = Message.objects.prefetch_related("file_set").select_related("application_id", "reply_to_id").order_by("message_id")
         if since: 
-            messages = Message.objects.filter(date__gte=since, application_id=application_id).order_by("message_id")
+            messages = queryset.filter(date__gte=since, application_id=application_id)
         else: 
-            messages = Message.objects.filter(application_id=application_id).order_by("message_id")
+            messages = queryset.filter(application_id=application_id)
 
-        # Retrieve associated files and construct response 
+        # Construct response 
         response = []
         for message in messages: 
-            associated_files = File.objects.filter(associated_message=message)
             message_serializer = MessageSerializer(message)
+            application_serializer = ApplicationSerializer(message.application_id)
+    
+            data = {
+                "message": message_serializer.data, 
+                "application": application_serializer.data
+            }
 
-            if not associated_files: 
-                response.append({
-                    "message": message_serializer.data
-                })
+            if message.reply_to_id: 
+                reply_to_message_serializer = MessageSerializer(message.reply_to_id)
+                data["reply_to_message"] = reply_to_message_serializer.data
+            else:
+                data["reply_to_message"] = None
+
+            if message.file_set.first(): 
+                file_serializer = FileSerializer(message.file_set.first())
+                data["file"] = file_serializer.data
             else: 
-                files_serializer = FileSerializer(associated_files, many=True)
-                response.append({
-                    "message": message_serializer.data,
-                    "files": files_serializer.data
-                })
-        
+                data["file"] = None
+                
+            response.append(data)
+
         return JsonResponse(response, safe=False)
 
         
@@ -80,32 +97,26 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
-
-        # Content is optional, but defaults to an empty string
-        content = validated_data["content"]
-        application_id = validated_data["applicationId"]
-        reply_to_id = validated_data.get("replyToId")
-
+        processed_data = remap_keys(validated_data, self.input_field_to_model_field_mapping)
+        
         # User verification
-        user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
+        user, application = get_user_and_application(user_id=request.user.id, application_id=processed_data['application_id'])
         is_valid = validate_user_in_application(user, application)
         if not is_valid: 
             return HttpResponse("This user is not the employee or employer in the application.", status=403)
         
         # Retrive the reply_to_message (if exists)
-        if reply_to_id:
+        if "reply_to_id" in processed_data:
             try:
-                reply_to_message = Message.objects.get(message_id=reply_to_id)
+                reply_to_message = Message.objects.get(message_id=processed_data["reply_to_id"])
+                processed_data["reply_to_id"] = reply_to_message
             except Message.DoesNotExist: 
                 return HttpResponse("No reply-to message corresponding to the message.", status=404)
             
         # Create the message record 
-        message = Message.objects.create(
-            content=content, 
-            application_id=application,
-            sender_id=user,
-            reply_to_id=reply_to_message if reply_to_id else None 
-        )
+        processed_data["application_id"] = application
+        processed_data["sender_id"] = user
+        message = Message.objects.create(**processed_data)
         message_id = message.message_id
 
         return HttpResponse(f"Message created successfully with message id: {message_id}.", status=200)
@@ -120,9 +131,8 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
-        new_content = validated_data["newContent"]
-        application_id = validated_data["applicationId"]
-
+        processed_data = remap_keys(validated_data, self.input_field_to_model_field_mapping)
+        
         # Try to retrieve the message record
         try: 
             message = Message.objects.get(message_id=pk)
@@ -130,13 +140,13 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("Message to be edited not found.", status=404)
         
         # User verification
-        user, application = get_user_and_application(user_id=request.user.id, application_id=application_id)
+        user, application = get_user_and_application(user_id=request.user.id, application_id=processed_data["application_id"])
         is_valid = validate_user_in_application(user, application) and validate_user_is_sender(user, message)
         if not is_valid: 
             return HttpResponse("This user is not the owner of the message.", status=403)
 
         # Modify the message 
-        message.content = new_content.strip()
+        message.content = processed_data["content"]
         message.is_edited = True 
         message.last_edited_at = timezone.now()
         message.save()

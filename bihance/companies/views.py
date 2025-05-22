@@ -1,11 +1,8 @@
 from .models import EmployerProfile, CompanyFollow
-from .serializers import EmployerProfileSerializer
-from applications.models import Job
-from applications.serializers import JobSerializer
+from .utils import to_json_object
+from django.db.models import Prefetch
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
-from files.models import File
-from files.serializers import FileSerializer
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 
@@ -15,60 +12,27 @@ class CompanyViewSet(viewsets.ViewSet):
 
     # GET multiple -> companies/
     def list(self, request): 
-        all_companies = EmployerProfile.objects.all()
+        all_companies = EmployerProfile.objects.select_related("employer_id").prefetch_related(
+            Prefetch("employer_id__job_set"), "file_set"
+        ).all()
         result = []
 
-        for company in all_companies: 
-            associated_jobs = Job.objects.filter(employer_id=company.employer_id.id)
-
-            try: 
-                associated_file = File.objects.get(associated_company=company)
-            except File.DoesNotExist: 
-                associated_file = None
-
-            company_serializer = EmployerProfileSerializer(company)
-            job_serializer = JobSerializer(associated_jobs, many=True)
-
-            final_data = { 
-                "company": company_serializer.data, 
-                "jobs": job_serializer.data,
-            }
-
-            if associated_file is None: 
-                result.append(final_data)
-            else: 
-                file_serializer = FileSerializer(associated_file)
-                final_data["file"] = file_serializer.data
-                result.append(final_data)
-    
+        for company in all_companies:
+            company_json = to_json_object(company) 
+            result.append(company_json)
+            
         return JsonResponse(result, safe=False)
 
 
     # GET single -> companies/:company_id
     def retrieve(self, request, pk=None): 
-        single_company = get_object_or_404(EmployerProfile, pk=pk)
-        associated_jobs = Job.objects.filter(employer_id=single_company.employer_id.id)
+        single_company = get_object_or_404(EmployerProfile.objects.select_related("employer_id").prefetch_related(
+            Prefetch("employer_id__job_set"), "file_set"
+        ), pk=pk)
+
+        company_json = to_json_object(single_company)
+        return JsonResponse(company_json)
         
-        try: 
-            associated_file = File.objects.get(associated_company=single_company)
-        except File.DoesNotExist: 
-            associated_file = None
-
-        company_serializer = EmployerProfileSerializer(single_company)
-        job_serializer = JobSerializer(associated_jobs, many=True)
-
-        final_data = {
-            "company": company_serializer.data, 
-            "jobs": job_serializer.data,
-        }
-
-        if associated_file is None: 
-            return JsonResponse(final_data)
-        else: 
-            file_serializer = FileSerializer(associated_file)
-            final_data["file"] = file_serializer.data
-            return JsonResponse(final_data)
-
 
     # POST -> companies/:company_id/follow
     @action(detail=True, methods=["post"])
