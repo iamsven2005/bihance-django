@@ -1,7 +1,12 @@
 from django.http import HttpResponse, JsonResponse
 from message.serializers import MessageSerializer
 from rest_framework import permissions, viewsets
-from utils.utils import check_is_employee, check_is_employer
+from utils.utils import (
+    is_employee,
+    is_employee_in_application,
+    is_employer,
+    is_employer_in_application,
+)
 
 from .models import Application, Job, User
 from .serializers import (
@@ -43,21 +48,19 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
         # Different ways to retrieve data
         if user_only:
-            # User should be EMPLOYEE
-            is_employee = check_is_employee(request.user.id)
-            if not is_employee:
+            # User verification
+            if not is_employee(request.user):
                 return HttpResponse("User must be an employee.", status=400)
-            applications = get_employee_applications(employee_id=request.user.id)
+            applications = get_employee_applications(request.user)
 
         else:
-            # User can be either EMPLOYEE or EMPLOYER
             if application_status is None:
                 applications = get_all_applications(
-                    user_id=request.user.id, application_status=None
+                    user=request.user, application_status=None
                 )
             else:
                 applications = get_all_applications(
-                    user_id=request.user.id, application_status=int(application_status)
+                    user=request.user, application_status=int(application_status)
                 )
 
         # Construct the response
@@ -87,9 +90,8 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
 
     # POST -> applications/
     def create(self, request):
-        # User should be EMPLOYEE
-        is_employee = check_is_employee(request.user.id)
-        if not is_employee:
+        # User verification
+        if not is_employee(request.user):
             return HttpResponse("User must be an employee.", status=400)
 
         # Input validation
@@ -108,15 +110,6 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         except Job.DoesNotExist:
             return HttpResponse("No job corresponding to the application.", status=404)
 
-        # Try to retrieve the employee record
-        employee_id = request.user.id
-        try:
-            employee_record = User.objects.get(id=employee_id)
-        except User.DoesNotExist:
-            return HttpResponse(
-                "No employee corresponding to the application.", status=404
-            )
-
         # Try to retrieve the employer record
         try:
             employer_record = User.objects.get(id=employer_id)
@@ -130,7 +123,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
             # UNIQUE constraint
             Application.objects.get(
                 job_id=job_record,
-                employee_id=employee_record,
+                employee_id=request.user,
             )
             # No exception raised, application exists
             return HttpResponse("Application already exists.", status=400)
@@ -142,14 +135,14 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         new_application = Application.objects.create(
             job_id=job_record,
             accept=1,  # 1 means pending
-            employee_id=employee_record,
-            employer_id=employer_id,
+            employee_id=request.user,
+            employer_id=employer_record,
         )
         new_application_id = new_application.application_id
 
         # Send email to EMPLOYEE
         send_email(
-            recipient_list=[employee_record.email],
+            recipient_list=[request.user.email],
             subject="Job Application Submitted",
             message=f"You have successfully applied for {job_record.name}.",
         )
@@ -158,7 +151,7 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         send_email(
             recipient_list=[employer_record.email],
             subject="New Job Application",
-            message=f"You have a new job application for {job_id}, from {employee_id}.",
+            message=f"You have a new job application for {job_id}, from {request.user.id}.",
         )
 
         return HttpResponse(
@@ -178,38 +171,43 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         application_status = validated_data.get("applicationStatus")
         bio = validated_data.get("bio")
 
+        # Try to retrieve the application record
+        try:
+            application = Application.objects.get(application_id=pk)
+        except Application.DoesNotExist:
+            return HttpResponse(f"Application with {pk} not found.", status=404)
+
         if application_status:
             assert bio is None
 
-            # User should be EMPLOYER
-            is_employer = check_is_employer(request.user.id)
-            if not is_employer:
+            # User verification
+            if not is_employer(request.user):
                 return HttpResponse("User must be an employer.", status=400)
 
-            # Try to retrieve the application record
-            try:
-                application = Application.objects.get(application_id=pk)
+            if not is_employer_in_application(request.user, application):
+                return HttpResponse(
+                    "Employer is not involved in this application.", status=400
+                )
 
-                # Quirky Django behaviour
-                # When accessing FK field, doesnt give FK value, gives the entire PK object!
-                job_id = application.job_id.job_id
-                job_name = Job.objects.get(job_id=job_id).name
-                employee_id = application.employee_id.id
-                employee_email = User.objects.get(id=employee_id).email
+            # Quirky Django behaviour
+            # When accessing FK field, doesnt give FK value, gives the entire PK object!
+            job_id = application.job_id.job_id
+            job_name = Job.objects.get(job_id=job_id).name
+            employee_id = application.employee_id.id
+            employee_email = User.objects.get(id=employee_id).email
 
-                application.accept = application_status
-                application.save()
+            application.accept = application_status
+            application.save()
 
-            except Application.DoesNotExist:
-                return HttpResponse(f"Application with {pk} not found.", status=404)
-
-            # Send confirmation email to EMPLOYEE
+            # Send email to EMPLOYEE
             if application_status == 2:
                 email_message = (
                     f"Congratulations, you have been accepted for {job_name}."
                 )
-            if application_status == 3:
+            elif application_status == 3:
                 email_message = f"Sorry, you have been rejected from {job_name}."
+            else:
+                email_message = f"Congratulations, you have been hired for {job_name}."
 
             send_email(
                 recipient_list=[employee_email],
@@ -221,33 +219,32 @@ class ApplicationsViewSet(viewsets.ModelViewSet):
         else:
             assert bio is not None
 
-            # Try to retrieve the application record
-            try:
-                application = Application.objects.get(application_id=pk)
-                application.bio = bio
-                application.save()
-
-            except Application.DoesNotExist:
-                return HttpResponse(f"Application with {pk} not found.", status=404)
+            application.bio = bio
+            application.save()
 
             return HttpResponse("Application bio successfully updated.", status=200)
 
     # DELETE -> applications/:application_id
     def destroy(self, request, pk=None):
-        # User should be EMPLOYEE
-        is_employee = check_is_employee(request.user.id)
-        if not is_employee:
-            return HttpResponse("User must be an employee.", status=400)
-
         # Try to retrieve the application record
         try:
-            application_to_delete = Application.objects.get(application_id=pk)
-            job_id = application_to_delete.job_id.job_id
-            job_name = Job.objects.get(job_id=job_id).name
-            application_to_delete.delete()
-
+            application = Application.objects.get(application_id=pk)
         except Application.DoesNotExist:
             return HttpResponse(f"Application with {pk} not found.", status=404)
+
+        # User verification
+        if not is_employee(request.user):
+            return HttpResponse("User must be an employee.", status=400)
+
+        if not is_employee_in_application(request.user, application):
+            return HttpResponse(
+                "Employee is not involved in this application.", status=400
+            )
+
+        # Perform delete
+        job_id = application.job_id.job_id
+        job_name = Job.objects.get(job_id=job_id).name
+        application.delete()
 
         # Send confirmation email to EMPLOYEE
         send_email(

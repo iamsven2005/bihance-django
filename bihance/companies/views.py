@@ -58,7 +58,7 @@ class CompanyViewSet(viewsets.ViewSet):
     def is_following(self, request, pk=None):
         get_object_or_404(EmployerProfile, pk=pk)
         user_is_following = CompanyFollow.objects.filter(
-            follower_id=request.user.id, company_id=pk
+            follower_id=request.user, company_id=pk
         ).exists()
         return HttpResponse(f"isFollowing: {user_is_following}.", status=200)
 

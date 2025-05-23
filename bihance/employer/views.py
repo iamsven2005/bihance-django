@@ -1,13 +1,13 @@
-from applications.models import User
 from companies.models import EmployerProfile
 from django.http import HttpResponse
 from rest_framework import permissions, viewsets
-from utils.utils import check_is_employer, remap_keys
+from utils.utils import is_employer, remap_keys
 
 from .serializers import (
     EmployerCreateInputSerializer,
     EmployerPartialUpdateInputSerializer,
 )
+from .utils import is_employer_in_company
 
 
 class EmployerViewSet(viewsets.ViewSet):
@@ -29,8 +29,7 @@ class EmployerViewSet(viewsets.ViewSet):
     # POST -> employer/
     def create(self, request):
         # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
+        if not is_employer(request.user):
             return HttpResponse("User must be an employer.", status=400)
 
         # Input validation
@@ -43,14 +42,11 @@ class EmployerViewSet(viewsets.ViewSet):
             validated_data, self.input_field_to_model_field_mapping
         )
 
-        # Retrieve the employer record
-        employer = User.objects.get(id=request.user.id)
-
         # Check if the employer profile exists already
         try:
             # UNIQUE constraint
             EmployerProfile.objects.get(
-                employer_id=employer,
+                employer_id=request.user,
                 company_name=processed_data["company_name"],
                 company_website=processed_data["company_website"],
             )
@@ -60,7 +56,7 @@ class EmployerViewSet(viewsets.ViewSet):
             pass
 
         # Create the new employer profile
-        processed_data["employer_id"] = employer
+        processed_data["employer_id"] = request.user
         employer_company = EmployerProfile.objects.create(**processed_data)
         company_id = employer_company.company_id
 
@@ -71,16 +67,18 @@ class EmployerViewSet(viewsets.ViewSet):
 
     # PATCH -> employer/:company_id
     def partial_update(self, request, pk=None):
+        # Try to retrieve the company record
+        try:
+            company = EmployerProfile.objects.get(company_id=pk)
+        except EmployerProfile.DoesNotExist:
+            return HttpResponse("Company does not exist.", status=400)
+
         # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
+        if not is_employer(request.user):
             return HttpResponse("User must be an employer.", status=400)
 
-        # Try to retrieve the employer profile record
-        try:
-            employer_company = EmployerProfile.objects.get(company_id=pk)
-        except EmployerProfile.DoesNotExist:
-            return HttpResponse("Employer profile does not exist.", status=400)
+        if not is_employer_in_company(request.user, company):
+            return HttpResponse("Employer is not involved in this company.", status=400)
 
         # Input validation
         serializer = EmployerPartialUpdateInputSerializer(data=request.data)
@@ -92,9 +90,9 @@ class EmployerViewSet(viewsets.ViewSet):
             validated_data, self.input_field_to_model_field_mapping
         )
 
-        # Update the employer profile
+        # Update the employer profile/company
         for model_field, value in processed_data.items():
-            setattr(employer_company, model_field, value)
-        employer_company.save()
+            setattr(company, model_field, value)
+        company.save()
 
-        return HttpResponse("Employer profile successfully updated.", status=200)
+        return HttpResponse("Company successfully updated.", status=200)

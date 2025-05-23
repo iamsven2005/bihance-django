@@ -4,6 +4,10 @@ from files.serializers import FileSerializer
 from .serializers import JobRequirementSerializer
 
 
+def is_employer_in_job(employer, job):
+    return job.employer_id == employer
+
+
 # Parse Job model object into a JSON object
 def to_json_object(job):
     job_serializer = JobSerializer(job)

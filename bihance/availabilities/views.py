@@ -1,13 +1,13 @@
-from applications.models import User
 from django.http import HttpResponse, JsonResponse
 from rest_framework import permissions, viewsets
-from utils.utils import check_is_employee
+from utils.utils import is_employee
 
 from .models import Timing
 from .serializers import (
     AvailabilityCreateInputSerializer,
     AvailabilitySerializer,
 )
+from .utils import is_employee_in_timing
 
 
 class AvailabilitiesViewSet(viewsets.ModelViewSet):
@@ -16,25 +16,20 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
     # GET multiple -> availabilities/
     def list(self, request):
         # User verification
-        is_employee = check_is_employee(request.user.id)
-        if not is_employee:
+        if not is_employee(request.user):
             return HttpResponse("User must be an employee.", status=400)
 
-        # Retrieve the employee record
-        employee = User.objects.get(id=request.user.id)
-
         # Retrieve and validate data
-        employee_availabilities = Timing.objects.filter(employee_id=employee).order_by(
-            "start_time"
-        )
+        employee_availabilities = Timing.objects.filter(
+            employee_id=request.user
+        ).order_by("start_time")
         serializer = AvailabilitySerializer(employee_availabilities, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     # POST -> availabilities/
     def create(self, request):
         # User verification
-        is_employee = check_is_employee(request.user.id)
-        if not is_employee:
+        if not is_employee(request.user):
             return HttpResponse("User must be an employee.", status=400)
 
         # Input validation
@@ -47,20 +42,11 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
         end_time = validated_data["endTime"]
         title = validated_data.get("title")
 
-        # Try to retrieve the employee record
-        employee_id = request.user.id
-        try:
-            employee = User.objects.get(id=employee_id)
-        except User.DoesNotExist:
-            return HttpResponse(
-                "No employee corresponding to the availability.", status=404
-            )
-
         # Check if the availability exists already
         try:
             # UNIQUE constraint
             Timing.objects.get(
-                employee_id=employee, start_time=start_time, end_time=end_time
+                employee_id=request.user, start_time=start_time, end_time=end_time
             )
             # No exception raised, availability exists
             return HttpResponse("Availability already exists.", status=400)
@@ -69,7 +55,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
             pass
 
         # Check if the availability start-end time overlaps with existing ones
-        current_availabilities = Timing.objects.filter(employee_id=employee)
+        current_availabilities = Timing.objects.filter(employee_id=request.user)
         has_overlap = False
         other_start_time = None
         other_end_time = None
@@ -91,7 +77,7 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
         # Create the availability
         new_availability = Timing.objects.create(
-            employee_id=employee,
+            employee_id=request.user,
             start_time=start_time,
             end_time=end_time,
             title=title if title else None,
@@ -105,16 +91,20 @@ class AvailabilitiesViewSet(viewsets.ModelViewSet):
 
     # DELETE -> availability/:availability_id
     def destroy(self, request, pk=None):
-        # User verification
-        is_employee = check_is_employee(request.user.id)
-        if not is_employee:
-            return HttpResponse("User must be an employee.", status=400)
-
         # Try to retrieve the timings record
         try:
-            availability_to_delete = Timing.objects.get(time_id=pk)
-            availability_to_delete.delete()
-            return HttpResponse("Availability successfully deleted.", status=200)
-
+            timing = Timing.objects.get(time_id=pk)
         except Timing.DoesNotExist:
             return HttpResponse(f"Availability with {pk} not found.", status=404)
+
+        # User verification
+        if not is_employee(request.user):
+            return HttpResponse("User must be an employee.", status=400)
+
+        if not is_employee_in_timing(request.user, timing):
+            return HttpResponse("Employee is not involved in this timing.", status=400)
+
+        # Perform delete
+        availability_to_delete = Timing.objects.get(time_id=pk)
+        availability_to_delete.delete()
+        return HttpResponse("Availability successfully deleted.", status=200)

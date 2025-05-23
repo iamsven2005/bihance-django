@@ -69,7 +69,6 @@ class User(AbstractUser):
         max_length=20, choices=UserRole.choices, default=UserRole.USER
     )
     location = models.JSONField(null=True, blank=True)
-    # Array fields ignored for now
 
     class Meta:
         db_table = "User"
@@ -128,7 +127,18 @@ class Application(models.Model):
     )
     job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
     accept = models.IntegerField()
-    employee_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="id")
+    employee_id = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        db_column="id",
+        related_name="applications_as_employee",
+    )
+    employer_id = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        db_column="employerId",
+        related_name="appications_as_employer",
+    )
 
     bio = models.TextField(null=True, blank=True, db_column="Bio")
     employee_review = models.TextField(
@@ -137,13 +147,12 @@ class Application(models.Model):
     employer_review = models.TextField(
         null=True, blank=True, db_column="EmployerReview"
     )
-    employer_id = models.TextField(null=True, blank=True, db_column="employerId")
-    # Array fields ignored for now
 
     class Meta:
         db_table = "Application"
         indexes = [
             models.Index(fields=["job_id"]),
             models.Index(fields=["employee_id"]),
+            models.Index(fields=["employer_id"]),
         ]
         unique_together = ("job_id", "employee_id")

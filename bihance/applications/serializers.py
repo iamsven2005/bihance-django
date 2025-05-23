@@ -91,6 +91,20 @@ class ApplicationCreateInputSerializer(serializers.Serializer):
 
     def validate(self, data):
         detect_extra_fields(self.initial_data, self.fields)
+
+        job_id = data["jobId"]
+        employer_id = data["employerId"]
+
+        try:
+            job = Job.objects.get(job_id=job_id)
+        except Job.DoesNotExist:
+            raise serializers.ValidationError("Job does not exist.")
+
+        if str(job.employer_id_id) != employer_id:
+            raise serializers.ValidationError(
+                "Job is not posted by the specified employer."
+            )
+
         return data
 
 
@@ -100,9 +114,9 @@ class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
 
     def validate_applicationStatus(self, value):
         num_value = int(value)
-        if num_value not in [2, 3]:
+        if num_value not in [2, 3, 4]:
             raise serializers.ValidationError(
-                "Application status can only be either 2 or 3."
+                "Application status can only be either 2 or 3 or 4."
             )
 
         return num_value

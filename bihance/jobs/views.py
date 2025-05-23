@@ -1,11 +1,11 @@
-from applications.models import Job, User
+from applications.models import Job
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from files.models import File
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
-from utils.utils import check_is_employer, remap_keys
+from utils.utils import is_employer, remap_keys
 
 from .models import JobRequirement
 from .serializers import (
@@ -13,7 +13,7 @@ from .serializers import (
     JobFilteredInputSerializer,
     JobPartialUpdateInputSerializer,
 )
-from .utils import to_json_object
+from .utils import is_employer_in_job, to_json_object
 
 
 class JobsViewSet(viewsets.ModelViewSet):
@@ -69,8 +69,7 @@ class JobsViewSet(viewsets.ModelViewSet):
     # POST -> jobs/
     def create(self, request):
         # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
+        if not is_employer(request.user):
             return HttpResponse("User is not an employer.", status=400)
 
         # Input validation
@@ -82,21 +81,21 @@ class JobsViewSet(viewsets.ModelViewSet):
         processed_data = remap_keys(
             validated_data, self.input_field_to_model_field_mapping
         )
-        processed_data["posted_date"] = timezone.now()
-        processed_data["employer_id"] = User.objects.get(id=request.user.id)
 
         # Check if job exists already
         try:
             Job.objects.get(
                 name=processed_data["name"],
                 start_date=processed_data["start_date"],
-                employer_id=processed_data["employer_id"],
+                employer_id=request.user,
             )
             return HttpResponse("Job already exists", status=400)
         except Job.DoesNotExist:
             pass
 
         # Create the new job record
+        processed_data["posted_date"] = timezone.now()
+        processed_data["employer_id"] = request.user
         new_job = Job.objects.create(**processed_data)
 
         # Create the job requirements, if any
@@ -111,10 +110,18 @@ class JobsViewSet(viewsets.ModelViewSet):
 
     # PATCH -> jobs/:job_id
     def partial_update(self, request, pk=None):
+        # Try to get the job record
+        try:
+            job = Job.objects.get(job_id=pk)
+        except Job.DoesNotExist:
+            return HttpResponse("No job found.", status=400)
+
         # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
+        if not is_employer(request.user):
             return HttpResponse("User is not an employer.", status=400)
+
+        if not is_employer_in_job(request.user, job):
+            return HttpResponse("Employer is not involved in this job.", status=400)
 
         # Input validation
         input_serializer = JobPartialUpdateInputSerializer(data=request.data)
@@ -125,12 +132,6 @@ class JobsViewSet(viewsets.ModelViewSet):
         processed_data = remap_keys(
             validated_data, self.input_field_to_model_field_mapping
         )
-
-        # Try to get the job record
-        try:
-            job = Job.objects.get(job_id=pk)
-        except Job.DoesNotExist:
-            return HttpResponse("No job found.", status=400)
 
         # Update the job record
         for model_field, value in processed_data.items():
@@ -151,16 +152,18 @@ class JobsViewSet(viewsets.ModelViewSet):
 
     # DELETE -> jobs/:job_id
     def destroy(self, request, pk=None):
-        # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
-            return HttpResponse("User is not an employer.", status=400)
-
         # Try to get the job record
         try:
             job = Job.objects.get(job_id=pk)
         except Job.DoesNotExist:
             return HttpResponse("No job found.", status=400)
+
+        # User verification
+        if not is_employer(request.user):
+            return HttpResponse("User is not an employer.", status=400)
+
+        if not is_employer_in_job(request.user, job):
+            return HttpResponse("Employer is not involved in this job.", status=400)
 
         # Delete job requirements, if any
         job_requirements = JobRequirement.objects.filter(job_id=job)
@@ -224,15 +227,13 @@ class JobsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def employer_jobs(self, request):
         # User verification
-        is_employer = check_is_employer(request.user.id)
-        if not is_employer:
+        if not is_employer(request.user):
             return HttpResponse("User is not an employer.", status=400)
 
         result = []
-        employer = User.objects.get(id=request.user.id)
         jobs = (
             Job.objects.prefetch_related("application_set", "jobrequirement_set")
-            .filter(employer_id=employer)
+            .filter(employer_id=request.user)
             .order_by("-posted_date")
         )
 

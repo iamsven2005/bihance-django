@@ -39,7 +39,7 @@ class ApplicationsAPITest(TestCase):
     def test_all(self):
         self.create_file()
         self.get_files()
-        self.delete_files()
+        self.delete_file()
 
     # POST
     def create_file(self):
@@ -71,7 +71,7 @@ class ApplicationsAPITest(TestCase):
             verify_file_shape(file)
 
     # DELETE
-    def delete_files(self):
+    def delete_file(self):
         file = File.objects.first()
         file_key = file.file_key
 

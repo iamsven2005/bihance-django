@@ -40,7 +40,7 @@ def get_application():
         job_id=get_job(),
         accept=1,
         employee_id=get_employee(),
-        employer_id=get_employer().id,
+        employer_id=get_employer(),
     )
     return application
 

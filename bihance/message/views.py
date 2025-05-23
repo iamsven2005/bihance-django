@@ -1,3 +1,4 @@
+from applications.models import Application
 from applications.serializers import ApplicationSerializer
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -5,9 +6,11 @@ from files.models import File
 from files.serializers import FileSerializer
 from rest_framework import permissions, viewsets
 from utils.utils import (
-    get_user_and_application,
+    is_employee,
+    is_employee_in_application,
+    is_employer,
+    is_employer_in_application,
     remap_keys,
-    validate_user_in_application,
 )
 
 from .models import Message
@@ -17,7 +20,7 @@ from .serializers import (
     MessagePartialUpdateInputSerializer,
     MessageSerializer,
 )
-from .utils import validate_user_is_sender
+from .utils import is_sender
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -52,16 +55,26 @@ class MessageViewSet(viewsets.ModelViewSet):
         application_id = validated_data["applicationId"]
         since = validated_data.get("since")
 
-        # User verification
-        user, application = get_user_and_application(
-            user_id=request.user.id, application_id=application_id
-        )
-        is_valid = validate_user_in_application(user, application)
-        if not is_valid:
+        # Try to retrieve the application
+        try:
+            application = Application.objects.get(application_id=application_id)
+        except Application.DoesNotExist:
             return HttpResponse(
-                "This user is not the employee or employer in the application.",
-                status=403,
+                f"Application with {application_id} does not exist.", status=400
             )
+
+        # User verification
+        if is_employee(request.user) and not is_employee_in_application(
+            request.user, application
+        ):
+            return HttpResponse(
+                "Employee is not involved in this application.", status=400
+            )
+
+        if is_employer(request.user) and not is_employer_in_application(
+            request.user, application
+        ):
+            return HttpResponse("Employer is not involved in this application.")
 
         # Retrive messages
         queryset = (
@@ -114,16 +127,29 @@ class MessageViewSet(viewsets.ModelViewSet):
             validated_data, self.input_field_to_model_field_mapping
         )
 
-        # User verification
-        user, application = get_user_and_application(
-            user_id=request.user.id, application_id=processed_data["application_id"]
-        )
-        is_valid = validate_user_in_application(user, application)
-        if not is_valid:
-            return HttpResponse(
-                "This user is not the employee or employer in the application.",
-                status=403,
+        # Try to retrieve the application
+        try:
+            application = Application.objects.get(
+                application_id=processed_data["application_id"]
             )
+        except Application.DoesNotExist:
+            return HttpResponse(
+                f"Application with {processed_data['application_id']} does not exist.",
+                status=400,
+            )
+
+        # User verification
+        if is_employee(request.user) and not is_employee_in_application(
+            request.user, application
+        ):
+            return HttpResponse(
+                "Employee is not involved in this application.", status=400
+            )
+
+        if is_employer(request.user) and not is_employer_in_application(
+            request.user, application
+        ):
+            return HttpResponse("Employer is not involved in this application.")
 
         # Retrive the reply_to_message (if exists)
         if "reply_to_id" in processed_data:
@@ -139,7 +165,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         # Create the message record
         processed_data["application_id"] = application
-        processed_data["sender_id"] = user
+        processed_data["sender_id"] = request.user
         message = Message.objects.create(**processed_data)
         message_id = message.message_id
 
@@ -160,6 +186,17 @@ class MessageViewSet(viewsets.ModelViewSet):
             validated_data, self.input_field_to_model_field_mapping
         )
 
+        # Try to retrieve the application
+        try:
+            application = Application.objects.get(
+                application_id=processed_data["application_id"]
+            )
+        except Application.DoesNotExist:
+            return HttpResponse(
+                f"Application with {processed_data['application_id']} does not exist.",
+                status=400,
+            )
+
         # Try to retrieve the message record
         try:
             message = Message.objects.get(message_id=pk)
@@ -167,16 +204,20 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("Message to be edited not found.", status=404)
 
         # User verification
-        user, application = get_user_and_application(
-            user_id=request.user.id, application_id=processed_data["application_id"]
-        )
-        is_valid = validate_user_in_application(
-            user, application
-        ) and validate_user_is_sender(user, message)
-        if not is_valid:
+        if is_employee(request.user) and not is_employee_in_application(
+            request.user, application
+        ):
             return HttpResponse(
-                "This user is not the owner of the message.", status=403
+                "Employee is not involved in this application.", status=400
             )
+
+        if is_employer(request.user) and not is_employer_in_application(
+            request.user, application
+        ):
+            return HttpResponse("Employer is not involved in this application.")
+
+        if not is_sender(request.user, message):
+            return HttpResponse("User is not the message sender.", status=400)
 
         # Modify the message
         message.content = processed_data["content"]
@@ -194,17 +235,29 @@ class MessageViewSet(viewsets.ModelViewSet):
         except Message.DoesNotExist:
             return HttpResponse("Message to be deleted not found.", status=404)
 
+        # Try to retrieve the application
+        try:
+            application = Application.objects.get(
+                application_id=message.application_id.application_id
+            )
+        except Application.DoesNotExist:
+            return HttpResponse("Application does not exist.", status=400)
+
         # User verification
-        user_id = request.user.id
-        application_id = message.application_id.application_id
-        user, application = get_user_and_application(
-            user_id=user_id, application_id=application_id
-        )
-        is_valid = validate_user_in_application(
-            user, application
-        ) and validate_user_is_sender(user, message)
-        if not is_valid:
-            return HttpResponse("This user is not owner of the message.", status=403)
+        if is_employee(request.user) and not is_employee_in_application(
+            request.user, application
+        ):
+            return HttpResponse(
+                "Employee is not involved in this application.", status=400
+            )
+
+        if is_employer(request.user) and not is_employer_in_application(
+            request.user, application
+        ):
+            return HttpResponse("Employer is not involved in this application.")
+
+        if not is_sender(request.user, message):
+            return HttpResponse("User is not the message sender.", status=400)
 
         # Perform soft delete of message
         message.content = "[This message has been deleted]"

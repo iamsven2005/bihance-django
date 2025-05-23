@@ -1,9 +1,11 @@
+from applications.models import Application
 from django.http import HttpResponse
 from rest_framework import permissions, viewsets
 from utils.utils import (
-    check_is_employee,
-    get_user_and_application,
-    validate_user_in_application,
+    is_employee,
+    is_employee_in_application,
+    is_employer,
+    is_employer_in_application,
 )
 
 from .serializers import ReviewPartialUpdateInputSerializer
@@ -14,22 +16,24 @@ class ReviewsViewSet(viewsets.ViewSet):
 
     # PATCH -> reviews/:application_id
     def partial_update(self, request, pk=None):
-        # User verification
-        user, application = get_user_and_application(
-            user_id=request.user.id, application_id=pk
-        )
-        is_valid = validate_user_in_application(user, application)
-        if not is_valid:
-            return HttpResponse(
-                "This user is not the employer or employee in the application.",
-                status=403,
-            )
+        # Try to retrieve the application record
+        try:
+            application = Application.objects.get(application_id=pk)
+        except Application.DoesNotExist:
+            return HttpResponse(f"Application with {pk} not found.", status=400)
 
-        # Specify user role
-        if check_is_employee(user):
-            user_role = "employee"
-        else:
-            user_role = "employer"
+        # User verification
+        if is_employee(request.user):
+            if is_employee_in_application(request.user, application):
+                user_role = "employee"
+            else:
+                return HttpResponse("Employee is not involved in the application.")
+
+        if is_employer(request.user):
+            if is_employer_in_application(request.user, application):
+                user_role = "employer"
+            else:
+                return HttpResponse("Employer is not involved in the application.")
 
         # Input validation
         serializer = ReviewPartialUpdateInputSerializer(data=request.data)

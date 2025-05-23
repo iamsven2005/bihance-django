@@ -25,3 +25,7 @@ def to_json_object(company):
         data["file"] = None
 
     return data
+
+
+def is_employer_in_job(employer, job):
+    return job.employer_id == employer

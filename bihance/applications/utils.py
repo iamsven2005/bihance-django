@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 
-from .models import Application, User
+from .models import Application
 
 base_queryset = Application.objects.select_related(
     "job_id", "employee_id"
@@ -11,20 +11,20 @@ base_queryset = Application.objects.select_related(
 
 
 # Helper functions
-def get_employee_applications(employee_id):
-    employee_applications = base_queryset.filter(employee_id=employee_id)
+def get_employee_applications(employee):
+    employee_applications = base_queryset.filter(employee_id=employee)
     return employee_applications
 
 
-def get_all_applications(user_id, application_status: int | None):
-    is_employee = User.objects.get(id=user_id).employee
+def get_all_applications(user, application_status: int | None):
+    is_employee = user.employee
 
     if is_employee:
         # Get their applications only
-        queryset = base_queryset.filter(employee_id=user_id)
+        queryset = base_queryset.filter(employee_id=user)
     else:
-        # Get applications to their job only
-        queryset = base_queryset.filter(employer_id=user_id)
+        # Get applications to their jobs only
+        queryset = base_queryset.filter(employer_id=user)
 
     if application_status is not None:
         queryset = queryset.filter(accept=application_status)
