@@ -9,10 +9,13 @@ from .serializers import (
 
 def to_json_object_base(suggestion):
     suggestion_serializer = SuggestionSerializer(suggestion)
-    suggestion_serializer.data["comment_count"] = suggestion.comment_count
-    suggestion_serializer.data["vote_count"] = suggestion.vote_count
+    suggestion_data = {
+        **suggestion_serializer.data,
+        "comment_count": suggestion.comment_count,
+        "vote_count": suggestion.vote_count,
+    }
     user_serializer = UserSerializer(suggestion.author_id)
-    data = {"suggestion": suggestion_serializer.data, "author": user_serializer.data}
+    data = {"suggestion": suggestion_data, "author": user_serializer.data}
 
     return data
 
@@ -43,6 +46,11 @@ def to_json_object_retrieve(suggestion):
 
 def to_json_object_leaderboard(user):
     user_serializer = UserSerializer(user)
-    user_serializer.data["implemented_count"] = user.implemented_count
-    user_serializer.data["vote_count"] = user.vote_count
-    return user_serializer.data
+    data = {**user_serializer.data}
+    if hasattr(user, "implemented_count"):
+        data["implemented_count"] = user.implemented_count
+
+    if hasattr(user, "vote_count"):
+        data["vote_count"] = user.vote_count
+
+    return data

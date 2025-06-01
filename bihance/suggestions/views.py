@@ -103,7 +103,7 @@ class SuggestionsViewSet(viewsets.ModelViewSet):
         validated_data["author_id"] = request.user
         suggestion = Suggestion.objects.create(**validated_data)
         return HttpResponse(
-            f"Suggestion created with {suggestion.suggestion_id}.", status=200
+            f"Suggestion created with: {suggestion.suggestion_id}.", status=200
         )
 
     # POST -> suggestions/:suggestion_id/vote
