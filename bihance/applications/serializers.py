@@ -131,5 +131,5 @@ class ApplicationPartialUpdateInputSerializer(serializers.Serializer):
         if has_status ^ has_bio:
             return data
         raise serializers.ValidationError(
-            "Can either update application status or application bio, but not both."
+            "Can either update application status or application bio, but not both nor neither."
         )

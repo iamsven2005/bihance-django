@@ -194,7 +194,6 @@ class JobsViewSet(viewsets.ModelViewSet):
         location = validated_data.get("location")
         search = validated_data.get("search")
 
-        # Perform the filtering
         queryset = (
             Job.objects.prefetch_related("application_set", "jobrequirement_set")
             .all()
@@ -209,11 +208,25 @@ class JobsViewSet(viewsets.ModelViewSet):
 
         queryset = queryset.filter(**filters)
         if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search)
-                | Q(description__icontains=search)
-                | Q(jobrequirement__name__icontains=search)
-            ).distinct()
+            # Stage 1 of filtering
+            filtered_jobs_1 = queryset.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+            )
+
+            # Stage 2 of filtering
+            filtered_jobs_2 = []
+            for job in queryset:
+                has_matching_requirement = False
+                for requirement in job.jobrequirement_set.all():
+                    if requirement.name == search:
+                        has_matching_requirement = True
+                        break
+
+                if has_matching_requirement:
+                    filtered_jobs_2.append(job)
+
+            # OR the results from both stages together
+            queryset = set(list(filtered_jobs_1) + filtered_jobs_2)
 
         # Return the filtered result
         result = []

@@ -145,11 +145,12 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(
                 "Employee is not involved in this application.", status=400
             )
-
         if is_employer(request.user) and not is_employer_in_application(
             request.user, application
         ):
-            return HttpResponse("Employer is not involved in this application.")
+            return HttpResponse(
+                "Employer is not involved in this application.", status=400
+            )
 
         # Retrive the reply_to_message (if exists)
         if "reply_to_id" in processed_data:
@@ -210,12 +211,12 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(
                 "Employee is not involved in this application.", status=400
             )
-
         if is_employer(request.user) and not is_employer_in_application(
             request.user, application
         ):
-            return HttpResponse("Employer is not involved in this application.")
-
+            return HttpResponse(
+                "Employer is not involved in this application.", status=400
+            )
         if not is_sender(request.user, message):
             return HttpResponse("User is not the message sender.", status=400)
 
@@ -250,12 +251,10 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(
                 "Employee is not involved in this application.", status=400
             )
-
         if is_employer(request.user) and not is_employer_in_application(
             request.user, application
         ):
             return HttpResponse("Employer is not involved in this application.")
-
         if not is_sender(request.user, message):
             return HttpResponse("User is not the message sender.", status=400)
 

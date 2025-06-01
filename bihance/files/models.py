@@ -11,7 +11,7 @@ from message.models import Message
 class AssociatedType(models.TextChoices):
     MESSAGE = "Message"
     GROUP_MESSAGE = "Group Message"
-    USER = ("User",)
+    USER = "User"
     JOB = "Job"
     COMPANY = "Company"
 

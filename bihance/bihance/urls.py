@@ -9,6 +9,7 @@ from jobs.views import JobsViewSet
 from message.views import MessageViewSet
 from rest_framework import routers
 from reviews.views import ReviewsViewSet
+from users.views import UsersViewSet
 
 router = routers.DefaultRouter()
 router.register(r"applications", ApplicationsViewSet, "applications")
@@ -19,6 +20,7 @@ router.register(r"files", FilesViewSet, "files")
 router.register(r"jobs", JobsViewSet, "jobs")
 router.register(r"messages", MessageViewSet, "messages")
 router.register(r"reviews", ReviewsViewSet, "reviews")
+router.register(r"users", UsersViewSet, "users")
 
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]

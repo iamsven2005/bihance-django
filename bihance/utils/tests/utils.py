@@ -10,6 +10,7 @@ from companies.serializers import CompanyFollowSerializer, EmployerProfileSerial
 from files.serializers import FileSerializer
 from jobs.serializers import JobRequirementSerializer
 from message.serializers import MessageSerializer
+from users.serializers import InterestSerializer, SkillSerializer
 
 
 # Verify shape of User JSON object
@@ -107,3 +108,25 @@ def verify_file_shape(file):
     )
     for field in expected_fields:
         assert field in file, f"Missing field {field} in file."
+
+
+# Verify shape of Skill JSON object
+def verify_skill_shape(skill):
+    expected_fields = SkillSerializer().get_fields().keys()
+
+    assert isinstance(skill, dict), (
+        f"Expected skill to be dict, got {type(skill)} instead."
+    )
+    for field in expected_fields:
+        assert field in skill, f"Missing field {skill} in file."
+
+
+# Verify shape of Interest JSON object
+def verify_interest_shape(interest):
+    expected_fields = InterestSerializer().get_fields().keys()
+
+    assert isinstance(interest, dict), (
+        f"Expected interest to be dict, got {type(interest)} instead."
+    )
+    for field in expected_fields:
+        assert field in interest, f"Missing field {interest} in file."

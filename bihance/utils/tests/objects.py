@@ -3,6 +3,7 @@ from datetime import datetime
 from applications.models import Application, Job, User
 from django.utils.timezone import make_aware
 from message.models import Message
+from users.models import Interest, Skill
 
 
 def get_employee():
@@ -19,6 +20,25 @@ def get_employer():
         employee=False,
     )
     return employer
+
+
+def create_employee_skills():
+    employee = get_employee()
+    Skill.objects.create(user_id=employee, name="Python")
+    Skill.objects.create(user_id=employee, name="C++")
+    Skill.objects.create(user_id=employee, name="Rust")
+
+
+def create_employee_interests():
+    employee = get_employee()
+    Interest.objects.create(
+        user_id=employee,
+        name="Badminton",
+        description="I love to SMASH (shuttle)cocks.",
+    )
+    Interest.objects.create(
+        user_id=employee, name="Piano", description="I love to FINGER minor(keys)."
+    )
 
 
 def get_job():
