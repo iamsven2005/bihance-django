@@ -6,7 +6,7 @@ from django.db import models
 
 class Interest(models.Model):
     interest_id = models.TextField(
-        db_column="interestId", default=uuid.uuid4, max_length=36, primary_key=True
+        primary_key=True, db_column="interestId", default=uuid.uuid4, max_length=36
     )
     user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
     name = models.TextField()
@@ -21,7 +21,7 @@ class Interest(models.Model):
 
 class Skill(models.Model):
     skill_id = models.TextField(
-        db_column="skillId", default=uuid.uuid4, max_length=36, primary_key=True
+        primary_key=True, db_column="skillId", default=uuid.uuid4, max_length=36
     )
     user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
     name = models.TextField()

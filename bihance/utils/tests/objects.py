@@ -8,7 +8,10 @@ from users.models import Interest, Skill
 
 def get_employee():
     employee, _ = User.objects.get_or_create(
-        id="user_2wGGKihK36mWtgSzXpMoPYyLulX", email="employee@gmail.com", employee=True
+        id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
+        email="employee@gmail.com",
+        employee=True,
+        role="Admin",
     )
     return employee
 
