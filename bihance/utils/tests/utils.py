@@ -1,4 +1,5 @@
 # Testing related utils
+# Testing is done in DEV, so assertions are enabled
 
 from applications.serializers import (
     ApplicationSerializer,
@@ -17,166 +18,111 @@ from suggestions.serializers import (
 )
 from users.serializers import InterestSerializer, SkillSerializer
 
+# Mapping of object types to their serializers
+object_type_to_serializer_mapping = {
+    "user": UserSerializer,
+    "job": JobSerializer,
+    "job_requirement": JobRequirementSerializer,
+    "application": ApplicationSerializer,
+    "availability": AvailabilitySerializer,
+    "employer_profile": EmployerProfileSerializer,
+    "company_follow": CompanyFollowSerializer,
+    "message": MessageSerializer,
+    "file": FileSerializer,
+    "skill": SkillSerializer,
+    "interest": InterestSerializer,
+    "suggestion": SuggestionSerializer,
+    "suggestion_comment": SuggestionCommentSerializer,
+    "suggestion_vote": SuggestionVoteSerializer,
+}
 
-# Verify shape of User JSON object
-def verify_user_shape(user, extra_fields=[]):
-    expected_fields = UserSerializer().get_fields().keys()
+
+# Verify shape of JSON object
+# Extra_fields -> those NOT from the ModelSerializer
+def verify_object_shape(object, object_type, extra_fields=[]):
+    object_serializer = object_type_to_serializer_mapping[object_type]
+    expected_fields = object_serializer().get_fields().keys()
     if extra_fields:
         expected_fields = list(expected_fields)
         expected_fields.extend(extra_fields)
 
-    assert isinstance(user, dict), (
-        f"Expected user to be dict, got {type(user)} instead."
+    assert len(object.keys()) == len(expected_fields), (
+        f"{object_type} does not contain expected number of fields."
     )
+
+    assert isinstance(object, dict), (
+        f"Expected {object_type} to be dict, got {type(object)} instead."
+    )
+
     for field in expected_fields:
-        assert field in user, f"Missing field {field} in user."
+        assert field in object, f"Missing field {field} in {object_type}."
+
+
+# Verify shape of User JSON object
+def verify_user_shape(user, extra_fields=[]):
+    verify_object_shape(user, "user", extra_fields)
 
 
 # Verify shape of Job JSON object
-def verify_job_shape(job):
-    expected_fields = JobSerializer().get_fields().keys()
-
-    assert isinstance(job, dict), f"Expected job to be dict, got {type(job)} instead."
-    for field in expected_fields:
-        assert field in job, f"Missing field {field} in job."
+def verify_job_shape(job, extra_fields=[]):
+    verify_object_shape(job, "job", extra_fields)
 
 
 # Verify shape of Job Requirement JSON object
-def verify_job_requirement_shape(job_requirement):
-    expected_fields = JobRequirementSerializer().get_fields().keys()
-
-    assert isinstance(job_requirement, dict), (
-        f"Expected job requirement to be dict, got {type(job_requirement)} instead."
-    )
-    for field in expected_fields:
-        assert field in job_requirement, f"Missing field {field} in job_requirement."
+def verify_job_requirement_shape(job_requirement, extra_fields=[]):
+    verify_object_shape(job_requirement, "job_requirement", extra_fields)
 
 
 # Verify shape of Application JSON object
-def verify_application_shape(application):
-    expected_fields = ApplicationSerializer().get_fields().keys()
-
-    assert isinstance(application, dict), (
-        f"Expected application to be dict, got {type(application)} instead."
-    )
-    for field in expected_fields:
-        assert field in application, f"Missing field {field} in application."
+def verify_application_shape(application, extra_fields=[]):
+    verify_object_shape(application, "application", extra_fields)
 
 
 # Verify shape of Availability JSON object
-def verify_availability_shape(availability):
-    expected_fields = AvailabilitySerializer().get_fields().keys()
-
-    assert isinstance(availability, dict), (
-        f"Expected availability to be dict, got {type(availability)} instead."
-    )
-    for field in expected_fields:
-        assert field in availability, f"Missing field {field} in availability."
+def verify_availability_shape(availability, extra_fields=[]):
+    verify_object_shape(availability, "availability", extra_fields)
 
 
 # Verify shape of EmployerProfile JSON object
-def verify_employer_profile_shape(employer_profile):
-    expected_fields = EmployerProfileSerializer().get_fields().keys()
-
-    assert isinstance(employer_profile, dict), (
-        f"Expected employer profile to be dict, got {type(employer_profile)} instead."
-    )
-    for field in expected_fields:
-        assert field in employer_profile, f"Missing field {field} in employer profile."
+def verify_employer_profile_shape(employer_profile, extra_fields=[]):
+    verify_object_shape(employer_profile, "employer_profile", extra_fields)
 
 
 # Verify shape of CompanyFollow JSON object
-def verify_company_follow_shape(company_follow):
-    expected_fields = CompanyFollowSerializer().get_fields().keys()
-
-    assert isinstance(company_follow, dict), (
-        f"Expected company follow to be dict, got {type(company_follow)} instead."
-    )
-    for field in expected_fields:
-        assert field in company_follow, f"Missing field {field} in company follow."
+def verify_company_follow_shape(company_follow, extra_fields=[]):
+    verify_object_shape(company_follow, "company_follow", extra_fields)
 
 
 # Verify shape of Message JSON object
-def verify_message_shape(message):
-    expected_fields = MessageSerializer().get_fields().keys()
-
-    assert isinstance(message, dict), (
-        f"Expected message to be dict, got {type(message)} instead."
-    )
-    for field in expected_fields:
-        assert field in message, f"Missing field {field} in message."
+def verify_message_shape(message, extra_fields=[]):
+    verify_object_shape(message, "message", extra_fields)
 
 
 # Verify shape of File JSON object
-def verify_file_shape(file):
-    expected_fields = FileSerializer().get_fields().keys()
-
-    assert isinstance(file, dict), (
-        f"Expected file to be dict, got {type(file)} instead."
-    )
-    for field in expected_fields:
-        assert field in file, f"Missing field {field} in file."
+def verify_file_shape(file, extra_fields=[]):
+    verify_object_shape(file, "file", extra_fields)
 
 
 # Verify shape of Skill JSON object
-def verify_skill_shape(skill):
-    expected_fields = SkillSerializer().get_fields().keys()
-
-    assert isinstance(skill, dict), (
-        f"Expected skill to be dict, got {type(skill)} instead."
-    )
-    for field in expected_fields:
-        assert field in skill, f"Missing field {skill} in skill."
+def verify_skill_shape(skill, extra_fields=[]):
+    verify_object_shape(skill, "skill", extra_fields)
 
 
 # Verify shape of Interest JSON object
-def verify_interest_shape(interest):
-    expected_fields = InterestSerializer().get_fields().keys()
-
-    assert isinstance(interest, dict), (
-        f"Expected interest to be dict, got {type(interest)} instead."
-    )
-    for field in expected_fields:
-        assert field in interest, f"Missing field {interest} in interest."
+def verify_interest_shape(interest, extra_fields=[]):
+    verify_object_shape(interest, "interest", extra_fields)
 
 
 # Verify shape of Suggestion JSON object
-def verify_suggestion_shape(suggestion):
-    expected_fields = list(SuggestionSerializer().get_fields().keys())
-    expected_fields.append("comment_count")
-    expected_fields.append("vote_count")
-
-    assert isinstance(suggestion, dict), (
-        f"Expected suggestion to be dict, got {type(suggestion)} instead."
-    )
-    for field in expected_fields:
-        assert field in suggestion, f"Missing field {suggestion} in suggestion."
+def verify_suggestion_shape(suggestion, extra_fields=[]):
+    verify_object_shape(suggestion, "suggestion", extra_fields)
 
 
 # Verify shape of SuggestionComment JSON object
-def verify_suggestion_comment_shape(suggestion_comment):
-    expected_fields = SuggestionCommentSerializer().get_fields().keys()
-
-    assert isinstance(suggestion_comment, dict), (
-        f"Expected suggestion comment to be dict, got {type(suggestion_comment)} instead."
-    )
-    for field in expected_fields:
-        assert field in suggestion_comment, (
-            f"Missing field {suggestion_comment} in suggestion comment."
-        )
+def verify_suggestion_comment_shape(suggestion_comment, extra_fields=[]):
+    verify_object_shape(suggestion_comment, "suggestion_comment", extra_fields)
 
 
 # Verify shape of SuggestionVote JSON object
-def verify_suggestion_vote_shape(suggestion_vote):
-    expected_fields = SuggestionVoteSerializer().get_fields().keys()
-
-    assert isinstance(suggestion_vote, dict), (
-        f"Expected suggestion vote to be dict, got {type(suggestion_vote)} instead."
-    )
-    for field in expected_fields:
-        assert field in suggestion_vote, (
-            f"Missing field {suggestion_vote} in suggestion vote."
-        )
-
-
-# DOESNT GUARD AGAINST EXTRA FIELDS
+def verify_suggestion_vote_shape(suggestion_vote, extra_fields=[]):
+    verify_object_shape(suggestion_vote, "suggestion_vote", extra_fields)

@@ -127,7 +127,9 @@ class SuggestionsAPITest(TestCase):
         # Validate suggestion field
         self.assertIn("suggestion", suggestion_info)
         suggestion = suggestion_info["suggestion"]
-        verify_suggestion_shape(suggestion)
+        verify_suggestion_shape(
+            suggestion, extra_fields=["comment_count", "vote_count"]
+        )
         self.assertEqual(suggestion["comment_count"], 1)
         self.assertEqual(suggestion["vote_count"], 2)
 
@@ -175,7 +177,9 @@ class SuggestionsAPITest(TestCase):
             # Validate suggestion field
             self.assertIn("suggestion", suggestion_info)
             suggestion = suggestion_info["suggestion"]
-            verify_suggestion_shape(suggestion)
+            verify_suggestion_shape(
+                suggestion, extra_fields=["comment_count", "vote_count"]
+            )
 
             if position == 1:
                 # We should see suggestion 2 first
@@ -189,7 +193,7 @@ class SuggestionsAPITest(TestCase):
 
             position += 1
 
-    # GET leaderboards
+    # GET user leaderboards
     def get_leaderboards(self):
         self.auth_employee()
         query_params = {"sortBy": "most-implemented"}
