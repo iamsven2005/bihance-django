@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import include, path
 from employer.views import EmployerViewSet
 from files.views import FilesViewSet
+from groups.views import GroupMessageViewSet, GroupViewSet
 from jobs.views import JobsViewSet
 from message.views import MessageViewSet
 from rest_framework import routers
@@ -23,6 +24,8 @@ router.register(r"messages", MessageViewSet, "messages")
 router.register(r"reviews", ReviewsViewSet, "reviews")
 router.register(r"suggestions", SuggestionsViewSet, "suggestions")
 router.register(r"users", UsersViewSet, "users")
+router.register(r"groups", GroupViewSet, "groups")
+router.register(r"group-messages", GroupMessageViewSet, "group-messages")
 
 
 urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]

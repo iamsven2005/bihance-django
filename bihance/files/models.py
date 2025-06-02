@@ -5,6 +5,7 @@ from applications.models import Job, User
 from companies.models import EmployerProfile
 from django.db import models
 from django.utils import timezone
+from groups.models import GroupMessage
 from message.models import Message
 
 
@@ -80,11 +81,13 @@ class File(models.Model):
         on_delete=models.PROTECT,
         db_column="associatedMessage",
     )
-    # associated_group_message = models.ForeignKey(Groupmessage, null=True, blank=True, on_delete=models.PROTECT) [IN FUTURE]
-    associated_group_message = models.TextField(
-        null=True, blank=True, db_column="associatedGroupMessage"
+    associated_group_message = models.ForeignKey(
+        GroupMessage,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        db_column="associatedGroupMessage",
     )
-
     associated_user = models.ForeignKey(
         User,
         null=True,

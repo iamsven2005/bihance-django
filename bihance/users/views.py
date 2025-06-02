@@ -102,7 +102,6 @@ class UsersViewSet(viewsets.ModelViewSet):
         # Input validation
         input_serializer = UserSearchInputSerializer(data=request.query_params)
         if not input_serializer.is_valid():
-            print(input_serializer.errors)
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
@@ -116,7 +115,6 @@ class UsersViewSet(viewsets.ModelViewSet):
             result = search_users_with_paginator(skills, name, page, limit)
             return JsonResponse(result)
         except Exception as e:
-            print(e)
             return HttpResponse(f"Error searching for users: {e}", status=400)
 
     # GET multiple -> users/skills

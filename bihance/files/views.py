@@ -1,6 +1,7 @@
 from applications.models import Job, User
 from companies.models import EmployerProfile
 from django.http import HttpResponse, JsonResponse
+from groups.models import GroupMessage
 from message.models import Message
 from rest_framework import permissions, viewsets
 from utils.utils import remap_keys
@@ -30,7 +31,7 @@ class FilesViewSet(viewsets.ModelViewSet):
         "User": (User, "id"),
         "Job": (Job, "job_id"),
         "Company": (EmployerProfile, "company_id"),
-        # "Group Message" [in future]
+        "Group Message": (GroupMessage, "message_id"),
     }
 
     atype_to_model_field_map = {
@@ -38,7 +39,7 @@ class FilesViewSet(viewsets.ModelViewSet):
         "User": "associated_user",
         "Job": "associated_job",
         "Company": "associated_company",
-        # "Group Message" [in future]
+        "Group Message": "associated_group_message",
     }
 
     # GET multiple -> files/

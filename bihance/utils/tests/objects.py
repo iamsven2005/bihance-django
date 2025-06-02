@@ -10,6 +10,8 @@ from users.models import Interest, Skill
 def get_employee():
     employee, _ = User.objects.get_or_create(
         id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
+        first_name="John",
+        last_name="Doe",
         email="employee@gmail.com",
         employee=True,
         role="Admin",
@@ -20,6 +22,8 @@ def get_employee():
 def get_employer():
     employer, _ = User.objects.get_or_create(
         id="user_2w9owsASS9O50XlIGdFubAjr8x0",
+        first_name="Nick",
+        last_name="Girl",
         email="employer@gmail.com",
         employee=False,
     )

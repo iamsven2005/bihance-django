@@ -80,12 +80,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         queryset = (
             Message.objects.prefetch_related("file_set")
             .select_related("application_id", "reply_to_id")
-            .order_by("message_id")
+            .filter(application_id=application_id)
+            .order_by("date")
         )
+
         if since:
-            messages = queryset.filter(date__gte=since, application_id=application_id)
-        else:
-            messages = queryset.filter(application_id=application_id)
+            messages = queryset.filter(date__gte=since)
 
         # Construct response
         response = []

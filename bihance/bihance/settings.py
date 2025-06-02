@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "companies.apps.CompaniesConfig",
     "employer.apps.EmployerConfig",
     "files.apps.FilesConfig",
+    "groups.apps.GroupsConfig",
     "jobs.apps.JobsConfig",
     "message.apps.MessageConfig",
     "reviews.apps.ReviewsConfig",

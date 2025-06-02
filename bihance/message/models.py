@@ -12,7 +12,7 @@ class Message(models.Model):
     content = models.TextField()
     date = models.DateTimeField(default=timezone.now)
     application_id = models.ForeignKey(
-        Application, on_delete=models.DO_NOTHING, db_column="matchId"
+        Application, on_delete=models.DO_NOTHING, db_column="applicationId"
     )
     sender_id = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, db_column="senderId"
