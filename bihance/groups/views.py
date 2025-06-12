@@ -1,11 +1,12 @@
-from applications.models import Application, Job, User
-from applications.serializers import UserSerializer
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from files.models import File
-from files.serializers import FileSerializer
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
+
+from applications.models import Application, Job, User
+from applications.serializers import UserSerializer
+from files.models import File
+from files.serializers import FileSerializer
 
 from .models import Group, GroupMember, GroupMessage
 from .serializers import (
@@ -16,9 +17,10 @@ from .serializers import (
     GroupMessageSerializer,
     GroupPartialUpdateInputSerializer,
 )
-from .utils import check_new_ids
+from .utils import check_new_ids, uuid_to_string
 
 
+# Handles interactions with Group and GroupMember
 class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -28,6 +30,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         # Already ensures that members (employee/employer) "belong" to the job
         input_serializer = GroupCreateInputSerializer(data=request.data)
         if not input_serializer.is_valid():
+            print(input_serializer.errors)
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
@@ -107,7 +110,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             group.save()
 
         # Add new members, if provided
-        add_ids = validated_data.get("addIds")
+        add_ids = uuid_to_string(validated_data.get("addIds"))
         if add_ids:
             # Ensure no existence
             for add_id in add_ids:
@@ -132,7 +135,7 @@ class GroupViewSet(viewsets.ModelViewSet):
                 )
 
         # Remove existing members, if provided
-        remove_ids = validated_data.get("removeIds")
+        remove_ids = uuid_to_string(validated_data.get("removeIds"))
         if remove_ids:
             # Ensure existence
             for remove_id in remove_ids:
@@ -161,7 +164,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             GroupMember.objects.filter(user_id__id__in=remove_ids).delete()
 
         # Make new admins, if provided
-        make_admin_ids = validated_data.get("makeAdminIds")
+        make_admin_ids = uuid_to_string(validated_data.get("makeAdminIds"))
         if make_admin_ids:
             # Ensure existence and member role
             for make_admin_id in make_admin_ids:
@@ -183,7 +186,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             )
 
         # Strip existing admins, if provided
-        strip_admin_ids = validated_data.get("stripAdminIds")
+        strip_admin_ids = uuid_to_string(validated_data.get("stripAdminIds"))
         if strip_admin_ids:
             # Ensure existence and admin role
             for strip_admin_id in strip_admin_ids:
@@ -255,6 +258,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         return JsonResponse(result, safe=False)
 
 
+# Handles interaction with GroupMessage and Files
 class GroupMessageViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -266,7 +270,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
-        content = validated_data.get("content")
+        content = validated_data["content"]
         reply_to_id = validated_data.get("replyToId")
         group_id = validated_data["groupId"]
 
@@ -282,23 +286,21 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
         except GroupMember.DoesNotExist:
             return HttpResponse("User is not part of this group.", status=400)
 
-        # Try to retrieve the reply to id
+        # Try to retrieve the reply to id (if any)
         # Ensure that its part of the group
-        try:
-            reply_to_message = GroupMessage.objects.get(
-                message_id=reply_to_id, group_id=group
-            )
-        except GroupMessage.DoesNotExist:
-            return HttpResponse("Reply to message does not exist.", status=400)
+        if reply_to_id:
+            try:
+                reply_to_message = GroupMessage.objects.get(
+                    message_id=reply_to_id, group_id=group
+                )
+            except GroupMessage.DoesNotExist:
+                return HttpResponse("Reply to message does not exist.", status=400)
 
         # Construct the message
         new_message = GroupMessage(
-            group_id=group,
-            sender_id=request.user,
+            group_id=group, sender_id=request.user, content=content
         )
 
-        if content:
-            new_message.content = content
         if reply_to_id:
             new_message.reply_to_id = reply_to_message
         new_message.save()

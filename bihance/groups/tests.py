@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 from rest_framework.test import APIClient
+
 from utils.tests.objects import (
     get_application,
     get_employee,
@@ -11,7 +12,7 @@ from utils.tests.objects import (
 )
 from utils.utils import terminate_current_connections
 
-from .models import Group, GroupMember
+from .models import Group, GroupMember, GroupMessage
 
 terminate_current_connections()
 
@@ -26,8 +27,8 @@ class GroupsAPITest(TestCase):
         cls.job = get_job()
         cls.application = get_application()
 
-        # Base url for all messages endpoint
-        cls.base_url = "/api/groups/"
+        cls.base_url_group = "/api/groups/"
+        cls.base_url_group_message = "/api/group-messages/"
 
     def auth_employee(self):
         self.client = APIClient()
@@ -44,7 +45,10 @@ class GroupsAPITest(TestCase):
         self.get_available_members()
 
         # Interacting with GroupMessage and Files
-        # ...
+        self.create_message()
+        self.update_message()
+        self.get_messages()
+        self.delete_message()
 
     def create_group(self):
         self.auth_employee()
@@ -53,7 +57,7 @@ class GroupsAPITest(TestCase):
             "jobId": self.job.job_id,
             "userIds": [self.employee.id, self.employer.id],
         }
-        response = self.client.post(self.base_url, data, format="json")
+        response = self.client.post(self.base_url_group, data, format="json")
         self.group_id = response.content.decode().split(": ")[1].replace(".", "")
 
         self.assertEqual(response.status_code, 200)
@@ -73,7 +77,7 @@ class GroupsAPITest(TestCase):
             "stripAdminIds": [self.employee.id],
         }
         response = self.client.patch(
-            f"{self.base_url}{self.group_id}/", data, format="json"
+            f"{self.base_url_group}{self.group_id}/", data, format="json"
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Group.objects.count(), 1)
@@ -86,5 +90,32 @@ class GroupsAPITest(TestCase):
     def get_available_members(self):
         self.auth_employee()
 
-        response = self.client.get(f"{self.base_url}{self.group_id}/available_members/")
+        response = self.client.get(
+            f"{self.base_url_group}{self.group_id}/available_members/"
+        )
         self.assertEqual(response.status_code, 200)
+
+    def create_message(self):
+        self.auth_employee()
+        data = {"content": "Hello Niggas", "groupId": self.group_id, "hasFile": False}
+
+        self.assertEqual(GroupMessage.objects.count(), 0)
+        response = self.client.post(self.base_url_group_message, data, format="json")
+        success_message = response.content.decode()
+        print(success_message)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(GroupMessage.objects.count(), 1)
+
+        success_message = response.content.decode()
+        print(success_message)
+        # self.message_id = success_message.split(": ")[1].replace(".", "")
+
+    def update_message(self):
+        pass
+
+    def get_messages(self):
+        pass
+
+    def delete_message(self):
+        pass

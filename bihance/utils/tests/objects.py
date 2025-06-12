@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from applications.models import Application, Job, User
 from django.utils.timezone import make_aware
+
+from applications.models import Application, Job, User
 from message.models import Message
 from suggestions.models import Suggestion
 from users.models import Interest, Skill
@@ -9,7 +10,6 @@ from users.models import Interest, Skill
 
 def get_employee():
     employee, _ = User.objects.get_or_create(
-        id="user_2wGGKihK36mWtgSzXpMoPYyLulX",
         first_name="John",
         last_name="Doe",
         email="employee@gmail.com",
@@ -21,7 +21,6 @@ def get_employee():
 
 def get_employer():
     employer, _ = User.objects.get_or_create(
-        id="user_2w9owsASS9O50XlIGdFubAjr8x0",
         first_name="Nick",
         last_name="Girl",
         email="employer@gmail.com",
@@ -62,7 +61,6 @@ def get_job():
     FIXED_DATE = make_aware(datetime(2025, 1, 1, 12, 0, 0))
 
     job, _ = Job.objects.get_or_create(
-        job_id="cma20egbu0007145n7evi1u6d",
         name="Forest Guardian & Glitch Hunter",
         employer_id=get_employer(),
         start_date=FIXED_DATE,
@@ -82,6 +80,7 @@ def get_application():
     return application
 
 
+# Not a group message btw
 def get_message():
     message, _ = Message.objects.get_or_create(
         content="Hello World",
