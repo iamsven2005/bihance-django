@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from utils.utils import detect_extra_fields
 
 from .models import Interest, Skill
@@ -57,7 +58,7 @@ class UserPartialUpdateInputSerializer(serializers.Serializer):
 
     def validate_toggleRole(self, value):
         # Can only be True
-        if not value:
+        if value is not None and value is False:
             raise serializers.ValidationError("toggleRole field can only be true.")
         return value
 

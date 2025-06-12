@@ -1,7 +1,10 @@
 # Integration testing (models, serializers, utils, views)
 # Negative test cases?
 
+from datetime import timedelta
+
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from utils.tests.objects import (
@@ -9,6 +12,11 @@ from utils.tests.objects import (
     get_employee,
     get_employer,
     get_job,
+)
+from utils.tests.utils import (
+    verify_file_shape,
+    verify_group_member_shape,
+    verify_group_message_shape,
 )
 from utils.utils import terminate_current_connections
 
@@ -101,21 +109,66 @@ class GroupsAPITest(TestCase):
 
         self.assertEqual(GroupMessage.objects.count(), 0)
         response = self.client.post(self.base_url_group_message, data, format="json")
-        success_message = response.content.decode()
-        print(success_message)
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(GroupMessage.objects.count(), 1)
 
         success_message = response.content.decode()
-        print(success_message)
-        # self.message_id = success_message.split(": ")[1].replace(".", "")
+        self.message_id = success_message.split(": ")[1].replace(".", "")
 
     def update_message(self):
-        pass
+        self.auth_employee()
+        data = {"content": "Hello ALL Niggas", "groupId": self.group_id}
+
+        response = self.client.patch(
+            f"{self.base_url_group_message}{self.message_id}/", data, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
 
     def get_messages(self):
-        pass
+        self.auth_employer()
+        one_day_ago = timezone.now() - timedelta(days=1)
+        query_params = {"since": one_day_ago.isoformat(), "groupId": self.group_id}
+        response = self.client.get(
+            self.base_url_group_message, query_params, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+
+        messages_info = response.json()
+        self.assertIsInstance(messages_info, list)
+        self.assertEqual(len(messages_info), 1)
+
+        for message_info in messages_info:
+            self.assertIsInstance(message_info, dict)
+
+            self.assertIn("message", message_info)
+            message = message_info["message"]
+            verify_group_message_shape(message)
+
+            self.assertIn("sender", message_info)
+            sender = message_info["sender"]
+            verify_group_member_shape(sender)
+
+            self.assertIn("reply_to_message", message_info)
+            reply_to_message = message_info["reply_to_message"]
+            if reply_to_message:
+                verify_group_message_shape(reply_to_message)
+
+            self.assertIn("file", message_info)
+            message_file = message_info["file"]
+            if message_file:
+                verify_file_shape(message_file)
 
     def delete_message(self):
-        pass
+        self.auth_employee()
+
+        # Note the rather "special" structure for the dynamic part of the url
+        response = self.client.delete(
+            f"{self.base_url_group_message}{self.message_id} || {self.group_id}/",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Since soft delete only
+        self.assertEqual(GroupMessage.objects.count(), 1)
+        self.assertEqual(
+            GroupMessage.objects.first().content, "[This message has been deleted]"
+        )

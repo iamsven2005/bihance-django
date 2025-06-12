@@ -19,10 +19,3 @@ def validate_no_duplicates(value, label):
     if len(set(value)) < len(value):
         raise serializers.ValidationError(f"Each user can only appear once in {label}.")
     return value
-
-
-def uuid_to_string(uuid_list):
-    if uuid_list:
-        return set(str(uuid) for uuid in uuid_list)
-    else:
-        return None

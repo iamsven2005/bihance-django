@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from utils.utils import detect_extra_fields
 
 from .models import Application, Job, User
@@ -86,8 +87,8 @@ class ApplicationListInputSerializer(serializers.Serializer):
 
 
 class ApplicationCreateInputSerializer(serializers.Serializer):
-    jobId = serializers.CharField()
-    employerId = serializers.CharField()
+    jobId = serializers.UUIDField()
+    employerId = serializers.UUIDField()
 
     def validate(self, data):
         detect_extra_fields(self.initial_data, self.fields)
@@ -100,7 +101,7 @@ class ApplicationCreateInputSerializer(serializers.Serializer):
         except Job.DoesNotExist:
             raise serializers.ValidationError("Job does not exist.")
 
-        if str(job.employer_id_id) != employer_id:
+        if job.employer_id.id != employer_id:
             raise serializers.ValidationError(
                 "Job is not posted by the specified employer."
             )

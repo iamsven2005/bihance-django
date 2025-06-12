@@ -1,17 +1,18 @@
 import uuid
 
-from applications.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
+from applications.models import User
+
 
 class EmployerProfile(models.Model):
-    company_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="id"
+    company_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="companyId"
     )
     employer_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="userId"
+        User, on_delete=models.DO_NOTHING, db_column="employerId"
     )
     company_name = models.TextField(db_column="companyName")
     company_website = models.URLField(db_column="companyWebsite")
@@ -37,19 +38,18 @@ class EmployerProfile(models.Model):
 
     class Meta:
         db_table = "Employer_Profile"
-        indexes = [
-            models.Index(fields=["employer_id"]),
-        ]
-
         unique_together = ("employer_id", "company_name", "company_website")
+
+    def __str__(self):
+        return self.company_id
 
 
 class CompanyFollow(models.Model):
-    follow_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="id"
+    follow_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="followId"
     )
     follower_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="userId"
+        User, on_delete=models.DO_NOTHING, db_column="followerId"
     )
     company_id = models.ForeignKey(
         EmployerProfile, on_delete=models.DO_NOTHING, db_column="companyId"
@@ -58,10 +58,7 @@ class CompanyFollow(models.Model):
 
     class Meta:
         db_table = "Company_Follow"
-        indexes = [
-            models.Index(fields=["follower_id"]),
-            models.Index(fields=["company_id"]),
-            models.Index(fields=["follower_id", "company_id"]),
-        ]
-
         unique_together = ("follower_id", "company_id")
+
+    def __str__(self):
+        return self.follow_id

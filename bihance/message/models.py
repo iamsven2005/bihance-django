@@ -1,13 +1,14 @@
 import uuid
 
-from applications.models import Application, User
 from django.db import models
 from django.utils import timezone
 
+from applications.models import Application, User
+
 
 class Message(models.Model):
-    message_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="msgId"
+    message_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="messageId"
     )
     content = models.TextField()
     date = models.DateTimeField(default=timezone.now)
@@ -32,8 +33,6 @@ class Message(models.Model):
 
     class Meta:
         db_table = "Message"
-        indexes = [
-            models.Index(fields=["application_id"]),
-            models.Index(fields=["sender_id"]),
-            models.Index(fields=["reply_to_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.message_id)

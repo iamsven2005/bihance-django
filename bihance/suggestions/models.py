@@ -1,13 +1,14 @@
 import uuid
 
-from applications.models import User
 from django.db import models
 from django.utils import timezone
 
+from applications.models import User
+
 
 class Suggestion(models.Model):
-    suggestion_id = models.TextField(
-        primary_key=True, db_column="suggestionId", default=uuid.uuid4, max_length=36
+    suggestion_id = models.UUIDField(
+        primary_key=True, db_column="suggestionId", default=uuid.uuid4
     )
     title = models.TextField()
     content = models.TextField()
@@ -20,14 +21,14 @@ class Suggestion(models.Model):
 
     class Meta:
         db_table = "Suggestion"
-        indexes = [
-            models.Index(fields=["author_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.suggestion_id)
 
 
 class SuggestionComment(models.Model):
-    comment_id = models.TextField(
-        primary_key=True, db_column="commentId", default=uuid.uuid4, max_length=36
+    comment_id = models.UUIDField(
+        primary_key=True, db_column="commentId", default=uuid.uuid4
     )
     content = models.TextField()
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
@@ -41,16 +42,10 @@ class SuggestionComment(models.Model):
 
     class Meta:
         db_table = "Suggestion_Comment"
-        indexes = [
-            models.Index(fields=["author_id"]),
-            models.Index(fields=["suggestion_id"]),
-        ]
 
 
 class SuggestionVote(models.Model):
-    vote_id = models.TextField(
-        primary_key=True, db_column="voteId", default=uuid.uuid4, max_length=36
-    )
+    vote_id = models.UUIDField(primary_key=True, db_column="voteId", default=uuid.uuid4)
     user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
     suggestion_id = models.ForeignKey(
         Suggestion, on_delete=models.DO_NOTHING, db_column="suggestionId"
@@ -60,7 +55,6 @@ class SuggestionVote(models.Model):
     class Meta:
         db_table = "Suggestion_Vote"
         unique_together = (("user_id", "suggestion_id"),)
-        indexes = [
-            models.Index(fields=["user_id"]),
-            models.Index(fields=["suggestion_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.vote_id)

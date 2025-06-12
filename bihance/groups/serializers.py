@@ -1,8 +1,9 @@
 from datetime import timedelta
 
-from applications.models import Job
 from django.utils import timezone
 from rest_framework import serializers
+
+from applications.models import Job
 from utils.utils import detect_extra_fields
 
 from .models import Group, GroupMember, GroupMessage
@@ -12,31 +13,31 @@ from .utils import check_new_ids, validate_no_duplicates
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ["group_id", "bio", "creator_id"]
+        fields = ["group_id", "bio", "creator_id", "job_id"]
         depth = 0
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupMember
-        fields = [
-            "message_id",
-            "content",
-            "group_id",
-            "sender_id",
-            "created_at",
-            "is_edited",
-            "is_deleted",
-            "last_edited_at",
-            "reply_to_id",
-        ]
+        fields = ["member_id", "user_id", "group_id", "role"]
         depth = 0
 
 
 class GroupMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupMessage
-        fields = ["member_id", "user_id", "group_id", "job_id", "role"]
+        fields = [
+            "message_id",
+            "content",
+            "created_at",
+            "group_id",
+            "sender_id",
+            "is_edited",
+            "is_deleted",
+            "last_edited_at",
+            "reply_to_id",
+        ]
         depth = 0
 
 

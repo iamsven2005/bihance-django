@@ -1,10 +1,11 @@
-from applications.models import Application
-from applications.serializers import ApplicationSerializer
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
+from rest_framework import permissions, viewsets
+
+from applications.models import Application
+from applications.serializers import ApplicationSerializer
 from files.models import File
 from files.serializers import FileSerializer
-from rest_framework import permissions, viewsets
 from utils.utils import (
     is_employee,
     is_employee_in_application,
@@ -77,7 +78,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("Employer is not involved in this application.")
 
         # Retrive messages
-        queryset = (
+        messages = (
             Message.objects.prefetch_related("file_set")
             .select_related("application_id", "reply_to_id")
             .filter(application_id=application_id)
@@ -85,7 +86,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         )
 
         if since:
-            messages = queryset.filter(date__gte=since)
+            messages = messages.filter(date__gte=since)
 
         # Construct response
         response = []

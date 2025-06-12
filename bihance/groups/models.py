@@ -1,8 +1,9 @@
 import uuid
 
-from applications.models import Job, User
 from django.db import models
 from django.utils import timezone
+
+from applications.models import Job, User
 
 
 class RoleType(models.TextChoices):
@@ -11,8 +12,8 @@ class RoleType(models.TextChoices):
 
 
 class Group(models.Model):
-    group_id = models.TextField(
-        primary_key=True, db_column="groupId", default=uuid.uuid4, max_length=36
+    group_id = models.UUIDField(
+        primary_key=True, db_column="groupId", default=uuid.uuid4
     )
     bio = models.TextField()
     creator_id = models.ForeignKey(
@@ -23,15 +24,14 @@ class Group(models.Model):
 
     class Meta:
         db_table = "Group"
-        indexes = [
-            models.Index(fields=["creator_id"]),
-            models.Index(fields=["job_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.group_id)
 
 
 class GroupMember(models.Model):
-    member_id = models.TextField(
-        primary_key=True, db_column="memberId", default=uuid.uuid4, max_length=36
+    member_id = models.UUIDField(
+        primary_key=True, db_column="memberId", default=uuid.uuid4
     )
     user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
     group_id = models.ForeignKey(
@@ -41,15 +41,14 @@ class GroupMember(models.Model):
 
     class Meta:
         db_table = "Group_Member"
-        indexes = [
-            models.Index(fields=["user_id"]),
-            models.Index(fields=["group_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.member_id)
 
 
 class GroupMessage(models.Model):
-    message_id = models.TextField(
-        primary_key=True, db_column="messageId", default=uuid.uuid4, max_length=36
+    message_id = models.UUIDField(
+        primary_key=True, db_column="messageId", default=uuid.uuid4
     )
     content = models.TextField()
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
@@ -75,8 +74,6 @@ class GroupMessage(models.Model):
 
     class Meta:
         db_table = "Group_Message"
-        indexes = [
-            models.Index(fields=["group_id"]),
-            models.Index(fields=["sender_id"]),
-            models.Index(fields=["reply_to_id"]),
-        ]
+
+    def __str__(self):
+        return str(self.message_id)

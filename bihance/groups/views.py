@@ -4,20 +4,20 @@ from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 
 from applications.models import Application, Job, User
-from applications.serializers import UserSerializer
 from files.models import File
 from files.serializers import FileSerializer
 
 from .models import Group, GroupMember, GroupMessage
 from .serializers import (
     GroupCreateInputSerializer,
+    GroupMemberSerializer,
     GroupMessageCreateInputSerializer,
     GroupMessageListInputSerializer,
     GroupMessagePartialUpdateInputSerializer,
     GroupMessageSerializer,
     GroupPartialUpdateInputSerializer,
 )
-from .utils import check_new_ids, uuid_to_string
+from .utils import check_new_ids
 
 
 # Handles interactions with Group and GroupMember
@@ -30,7 +30,6 @@ class GroupViewSet(viewsets.ModelViewSet):
         # Already ensures that members (employee/employer) "belong" to the job
         input_serializer = GroupCreateInputSerializer(data=request.data)
         if not input_serializer.is_valid():
-            print(input_serializer.errors)
             return HttpResponse(input_serializer.errors, status=400)
 
         validated_data = input_serializer.validated_data
@@ -110,7 +109,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             group.save()
 
         # Add new members, if provided
-        add_ids = uuid_to_string(validated_data.get("addIds"))
+        add_ids = validated_data.get("addIds")
         if add_ids:
             # Ensure no existence
             for add_id in add_ids:
@@ -135,7 +134,7 @@ class GroupViewSet(viewsets.ModelViewSet):
                 )
 
         # Remove existing members, if provided
-        remove_ids = uuid_to_string(validated_data.get("removeIds"))
+        remove_ids = validated_data.get("removeIds")
         if remove_ids:
             # Ensure existence
             for remove_id in remove_ids:
@@ -164,9 +163,9 @@ class GroupViewSet(viewsets.ModelViewSet):
             GroupMember.objects.filter(user_id__id__in=remove_ids).delete()
 
         # Make new admins, if provided
-        make_admin_ids = uuid_to_string(validated_data.get("makeAdminIds"))
+        make_admin_ids = validated_data.get("makeAdminIds")
+
         if make_admin_ids:
-            # Ensure existence and member role
             for make_admin_id in make_admin_ids:
                 if make_admin_id not in existing_user_ids:
                     return HttpResponse(
@@ -186,7 +185,7 @@ class GroupViewSet(viewsets.ModelViewSet):
             )
 
         # Strip existing admins, if provided
-        strip_admin_ids = uuid_to_string(validated_data.get("stripAdminIds"))
+        strip_admin_ids = validated_data.get("stripAdminIds")
         if strip_admin_ids:
             # Ensure existence and admin role
             for strip_admin_id in strip_admin_ids:
@@ -282,7 +281,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
 
         # Check that user is part of the group
         try:
-            GroupMember.objects.get(user_id=request.user, group_id=group)
+            user_member = GroupMember.objects.get(user_id=request.user, group_id=group)
         except GroupMember.DoesNotExist:
             return HttpResponse("User is not part of this group.", status=400)
 
@@ -298,7 +297,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
 
         # Construct the message
         new_message = GroupMessage(
-            group_id=group, sender_id=request.user, content=content
+            group_id=group, sender_id=user_member, content=content
         )
 
         if reply_to_id:
@@ -342,16 +341,19 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
 
         if since:
             messages = queryset.filter(
-                date__gte=since,
+                created_at__gte=since,
             )
 
         # Construct response
         result = []
         for message in messages:
             message_serializer = GroupMessageSerializer(message)
-            user_serializer = UserSerializer(message.sender_id)
+            sender_serializer = GroupMemberSerializer(message.sender_id)
 
-            data = {"message": message_serializer.data, "sender": user_serializer.data}
+            data = {
+                "message": message_serializer.data,
+                "sender": sender_serializer.data,
+            }
 
             if message.reply_to_id:
                 reply_to_message_serializer = GroupMessageSerializer(
@@ -390,7 +392,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
 
         # Check that user is part of the group
         try:
-            GroupMember.objects.get(user_id=request.user, group_id=group)
+            user_member = GroupMember.objects.get(user_id=request.user, group_id=group)
         except GroupMember.DoesNotExist:
             return HttpResponse("User is not part of this group.", status=400)
 
@@ -402,7 +404,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("Message does not exist.", status=400)
 
         # Check that user is sender of message
-        if message.sender_id != request.user:
+        if message.sender_id != user_member:
             return HttpResponse("Message is not sent by user.", status=400)
 
         # Modify the message
@@ -427,7 +429,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
 
         # Check that user is part of the group
         try:
-            GroupMember.objects.get(user_id=request.user, group_id=group)
+            user_member = GroupMember.objects.get(user_id=request.user, group_id=group)
         except GroupMember.DoesNotExist:
             return HttpResponse("User is not part of this group.", status=400)
 
@@ -439,7 +441,7 @@ class GroupMessageViewSet(viewsets.ModelViewSet):
             return HttpResponse("Message does not exist.", status=400)
 
         # Check that user is sender of message
-        if message.sender_id != request.user:
+        if message.sender_id != user_member:
             return HttpResponse("Message is not sent by user.", status=400)
 
         # Soft delete the message

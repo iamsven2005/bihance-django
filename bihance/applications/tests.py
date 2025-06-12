@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 from rest_framework.test import APIClient
+
 from utils.tests.objects import get_application, get_employee, get_employer, get_job
 from utils.tests.utils import (
     verify_application_shape,
@@ -75,8 +76,8 @@ class ApplicationsAPITest(TestCase):
 
         # Re-create the same application lol
         data = {
-            "jobId": "cma20egbu0007145n7evi1u6d",
-            "employerId": "user_2w9owsASS9O50XlIGdFubAjr8x0",
+            "jobId": self.job.job_id,
+            "employerId": self.employer.id,
         }
         response = self.client.post(self.base_url, data, format="json")
         self.assertEqual(response.status_code, 200)

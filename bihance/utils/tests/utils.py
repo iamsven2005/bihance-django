@@ -9,6 +9,11 @@ from applications.serializers import (
 from availabilities.serializers import AvailabilitySerializer
 from companies.serializers import CompanyFollowSerializer, EmployerProfileSerializer
 from files.serializers import FileSerializer
+from groups.serializers import (
+    GroupMemberSerializer,
+    GroupMessageSerializer,
+    GroupSerializer,
+)
 from jobs.serializers import JobRequirementSerializer
 from message.serializers import MessageSerializer
 from suggestions.serializers import (
@@ -34,6 +39,9 @@ object_type_to_serializer_mapping = {
     "suggestion": SuggestionSerializer,
     "suggestion_comment": SuggestionCommentSerializer,
     "suggestion_vote": SuggestionVoteSerializer,
+    "group": GroupSerializer,
+    "group_member": GroupMemberSerializer,
+    "group_message": GroupMessageSerializer,
 }
 
 
@@ -126,3 +134,18 @@ def verify_suggestion_comment_shape(suggestion_comment, extra_fields=[]):
 # Verify shape of SuggestionVote JSON object
 def verify_suggestion_vote_shape(suggestion_vote, extra_fields=[]):
     verify_object_shape(suggestion_vote, "suggestion_vote", extra_fields)
+
+
+# Verify shape of Group JSON object
+def verify_group_shape(group, extra_fields=[]):
+    verify_object_shape(group, "group", extra_fields)
+
+
+# Verify shape of Group Member JSON object
+def verify_group_member_shape(group_member, extra_fields=[]):
+    verify_object_shape(group_member, "group_member", extra_fields)
+
+
+# Verify shape of Group Message JSON object
+def verify_group_message_shape(group_message, extra_fields=[]):
+    verify_object_shape(group_message, "group_message", extra_fields)

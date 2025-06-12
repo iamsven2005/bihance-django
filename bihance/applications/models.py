@@ -38,9 +38,7 @@ class PayType(models.TextChoices):
 
 class User(AbstractUser):
     # Updating some defaults from AbstractUser
-    id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="id"
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, db_column="userId")
     first_name = models.TextField(null=True, blank=True, db_column="firstName")
     last_name = models.TextField(null=True, blank=True, db_column="lastName")
     email = models.EmailField(unique=True)
@@ -76,61 +74,65 @@ class User(AbstractUser):
             models.Index(fields=["email"]),
         ]
 
+    def __str__(self):
+        return str(self.id)
+
 
 class Job(models.Model):
-    job_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="jobId"
+    job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, db_column="jobId")
+    name = models.TextField(max_length=255)
+    employer_id = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, db_column="employerId"
     )
-    name = models.CharField(max_length=255, db_column="Name")
-    employer_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="id")
 
-    start_date = models.DateTimeField(db_column="StartDate")
-    end_date = models.DateTimeField(null=True, blank=True, db_column="EndDate")
-    salary = models.FloatField(null=True, blank=True, db_column="Salary")
-    higher_salary = models.FloatField(null=True, blank=True, db_column="HigherSalary")
-    description = models.TextField(db_column="Description")
-    requirements = models.TextField(null=True, blank=True, db_column="Requirements")
+    start_date = models.DateTimeField(db_column="startDate")
+    end_date = models.DateTimeField(null=True, blank=True, db_column="endDate")
+    salary = models.FloatField(null=True, blank=True)
+    higher_salary = models.FloatField(null=True, blank=True, db_column="higherSalary")
+    description = models.TextField()
+    requirements = models.TextField(null=True, blank=True)
 
-    posted_date = models.DateTimeField(db_column="PostedDate")
-    start_age = models.IntegerField(null=True, blank=True, db_column="Startage")
-    end_age = models.IntegerField(null=True, blank=True, db_column="Endage")
+    posted_date = models.DateTimeField(db_column="postedDate")
+    start_age = models.IntegerField(null=True, blank=True, db_column="startage")
+    end_age = models.IntegerField(null=True, blank=True, db_column="endage")
 
     # True -> Female, # False -> Male
-    gender = models.BooleanField(null=True, blank=True, db_column="Gender")
+    gender = models.BooleanField(null=True, blank=True)
 
     location = models.JSONField(null=True, blank=True)
     job_type = models.CharField(
         choices=JobType.choices, null=True, blank=True, db_column="jobType"
     )
     location_name = models.TextField(null=True, blank=True, db_column="locationName")
-    company = models.TextField(null=True, blank=True, db_column="Company")
-    duration = models.TextField(
-        choices=DurationType.choices, null=True, blank=True, db_column="Duration"
-    )
-    pay_type = models.TextField(
-        choices=PayType.choices, null=True, blank=True, db_column="PayType"
+    company = models.TextField(null=True, blank=True)
+    duration = models.TextField(choices=DurationType.choices, null=True, blank=True)
+    pay_type = models.CharField(
+        choices=PayType.choices, null=True, blank=True, db_column="payType"
     )
 
     class Meta:
         db_table = "Job"
+        # Note, Django automatically creates index for FK
         indexes = [
-            models.Index(fields=["employer_id"]),
             models.Index(fields=["job_type"]),
             models.Index(fields=["location_name"]),
         ]
         unique_together = ("name", "employer_id", "start_date")
 
+    def __str__(self):
+        return str(self.job_id)
+
 
 class Application(models.Model):
-    application_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="applicationId"
+    application_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, db_column="applicationId"
     )
     job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
     accept = models.IntegerField()
     employee_id = models.ForeignKey(
         User,
         on_delete=models.DO_NOTHING,
-        db_column="id",
+        db_column="employeeId",
         related_name="applications_as_employee",
     )
     employer_id = models.ForeignKey(
@@ -140,19 +142,17 @@ class Application(models.Model):
         related_name="appications_as_employer",
     )
 
-    bio = models.TextField(null=True, blank=True, db_column="Bio")
+    bio = models.TextField(null=True, blank=True)
     employee_review = models.TextField(
-        null=True, blank=True, db_column="EmployeeReview"
+        null=True, blank=True, db_column="employeeReview"
     )
     employer_review = models.TextField(
-        null=True, blank=True, db_column="EmployerReview"
+        null=True, blank=True, db_column="employerReview"
     )
 
     class Meta:
         db_table = "Application"
-        indexes = [
-            models.Index(fields=["job_id"]),
-            models.Index(fields=["employee_id"]),
-            models.Index(fields=["employer_id"]),
-        ]
         unique_together = ("job_id", "employee_id")
+
+    def __str__(self):
+        return str(self.application_id)

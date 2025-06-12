@@ -1,22 +1,22 @@
 import uuid
 
-from applications.models import User
 from django.db import models
+
+from applications.models import User
 
 
 class Timing(models.Model):
-    time_id = models.TextField(
-        primary_key=True, default=uuid.uuid4, max_length=36, db_column="timeId"
+    time_id = models.UUIDField(primary_key=True, default=uuid.uuid4, db_column="timeId")
+    start_time = models.DateTimeField(db_column="startTime")
+    end_time = models.DateTimeField(db_column="endTime")
+    employee_id = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, db_column="employeeId"
     )
-    start_time = models.DateTimeField(db_column="Starttime")
-    end_time = models.DateTimeField(db_column="Endtime")
-    employee_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="id")
-    title = models.TextField(blank=True, null=True, db_column="Title")
+    title = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = "Timing"
-        indexes = [
-            models.Index(fields=["employee_id"]),
-        ]
-
         unique_together = ("start_time", "end_time", "employee_id")
+
+    def __str__(self):
+        return str(self.time_id)
