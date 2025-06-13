@@ -64,18 +64,22 @@ parse_pg_uri () {
 ENV_FILE=".env"
 
 if [[ ! -f $ENV_FILE ]]; then
-  echo "❌  $ENV_FILE not found; aborting." >&2
-  exit 1
+    echo "❌  $ENV_FILE not found; aborting." >&2
+    exit 1
 fi
 
 # Grab the first non-comment, non-blank DATABASE_URL= line
-DATABASE_URL=$(
-  grep -m1 -E '^[[:space:]]*DATABASE_URL=' "$ENV_FILE" \
-  | sed -E 's/^[[:space:]]*DATABASE_URL=//'
+# -m1: Max one matching line 
+# -E: Use extended regex
+DATABASE_URL=$(    
+    # Get first matching line
+    grep -m1 -E '^[[:space:]]*DATABASE_URL=' "$ENV_FILE" \
+    # Strip away leading space and the prefix
+    | sed -E 's/^[[:space:]]*DATABASE_URL=//' 
 )
 if [[ -z $DATABASE_URL ]]; then
-  echo "❌  DATABASE_URL is missing in $ENV_FILE; aborting." >&2
-  exit 1
+    echo "❌  DATABASE_URL is missing in $ENV_FILE; aborting." >&2
+    exit 1
 fi
 
 
