@@ -1,7 +1,6 @@
 from django.http import HttpResponse, JsonResponse
-from rest_framework import permissions, viewsets
-
 from message.serializers import MessageSerializer
+from rest_framework import permissions, viewsets
 from utils.utils import (
     is_employee,
     is_employee_in_application,

@@ -3,7 +3,6 @@
 
 from django.test import TestCase
 from rest_framework.test import APIClient
-
 from utils.tests.objects import get_application, get_employee, get_employer, get_job
 from utils.tests.utils import (
     verify_application_shape,

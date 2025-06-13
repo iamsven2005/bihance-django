@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from utils.utils import detect_extra_fields
 
 from .models import Application, Job, User

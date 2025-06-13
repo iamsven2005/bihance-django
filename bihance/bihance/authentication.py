@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import jwt
 import requests
@@ -12,6 +13,11 @@ from rest_framework.exceptions import AuthenticationFailed
 load_dotenv()
 CLERK_API_URL = "https://api.clerk.com/v1"
 CACHE_KEY = "jwks_data"
+
+# Seed string
+# Use it to generate a seed UUID
+SEED_STRING = "7b2fe1c3-bed0-4869-b547-bffc17e36471"
+SEED_UUID = uuid.UUID(SEED_STRING)
 
 
 class JWTAuthenticationMiddleware(BaseAuthentication):
@@ -63,11 +69,14 @@ class JWTAuthenticationMiddleware(BaseAuthentication):
         except jwt.InvalidTokenError:
             raise AuthenticationFailed("Invalid token.")
 
-        user_id = payload.get("sub")
+        # Extract unique user_id
+        # Convert it to unique associated uuid
+        user_id: str = payload.get("sub")
+        user_uuid: uuid = uuid.uuid5(SEED_UUID, user_id)
         if user_id:
             # Even if user was created
             # Other compulsory fields will be set later
-            user, created = User.objects.get_or_create(id=user_id)
+            user, created = User.objects.get_or_create(id=user_uuid)
             return user
 
         return None
