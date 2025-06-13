@@ -22,7 +22,7 @@ def is_employer_in_application(employer, application):
 
 def terminate_current_connections():
     cursor = connection.cursor()
-    database_name = "test_Development"
+    database_name = "test_development"
     cursor.execute(
         "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity "
         "WHERE pg_stat_activity.datname = %s AND pid <> pg_backend_pid();",
