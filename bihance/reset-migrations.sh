@@ -8,7 +8,7 @@ sudo apt update
 sudo apt install postgresql-client
 
 
-# Extract out DEVELOPMENT db details 
+# Extract out database details, given database connection string
 parse_pg_uri () {
     # Read from the first argument
     local uri="$1"
@@ -59,10 +59,29 @@ parse_pg_uri () {
     export DB_NAME DB_USER DB_PASSWORD DB_HOST DB_PORT
 }
 
-# Lower case "development" db
+
+# Read from .env file 
+ENV_FILE=".env"
+
+if [[ ! -f $ENV_FILE ]]; then
+  echo "❌  $ENV_FILE not found; aborting." >&2
+  exit 1
+fi
+
+# Grab the first non-comment, non-blank DATABASE_URL= line
+DATABASE_URL=$(
+  grep -m1 -E '^[[:space:]]*DATABASE_URL=' "$ENV_FILE" \
+  | sed -E 's/^[[:space:]]*DATABASE_URL=//'
+)
+if [[ -z $DATABASE_URL ]]; then
+  echo "❌  DATABASE_URL is missing in $ENV_FILE; aborting." >&2
+  exit 1
+fi
+
+
+# NOTE: db name should be LOWERCASE
 # Since PostgreSQL operations tend to assume lowercase anyways 
-PG_URI='postgresql://BIHANCE_owner:7GVMQKSlRz4b@ep-bitter-sun-a1e171pp-pooler.ap-southeast-1.aws.neon.tech/development?sslmode=require'
-parse_pg_uri "$PG_URI"
+parse_pg_uri "$DATABASE_URL"
 
 # Sanity check
 echo "DB_NAME=$DB_NAME"
