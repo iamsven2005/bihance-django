@@ -47,3 +47,4 @@ grep -vE '^[[:space:]]*#' "$OUT_FILE" > "$tmp"
 
 # Finally, check that all dependencies are installed 
 pip-sync --user "${OUT_FILE}" 
+

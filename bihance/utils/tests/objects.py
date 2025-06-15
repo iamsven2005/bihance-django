@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from django.utils.timezone import make_aware
-
 from applications.models import Application, Job, User
+from django.utils.timezone import make_aware
 from message.models import Message
 from suggestions.models import Suggestion
 from users.models import Interest, Skill
