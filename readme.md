@@ -1,22 +1,98 @@
-## Setting up the Backend 🤩
-1. clone this repo
-2. cd bihance-django/bihance
-3. python -m venv venv
-4. venv\Scripts\activate
-5. pip install -r ./requirements.txt
-6. touch .env
-7. required env variables are 
-   - DATABASE_URL
-   - CLERK_FRONTEND_API_URL
-   - CLERK_SECRET_KEY
-   - RESEND_API_KEY
-   - RESEND_FROM_EMAIL
-   - DEBUG
-   - ALLOWED_HOSTS
-   - SECRET_KEY (for Django) 
+# Bihance Backend 
+## Django & PostgreSQL, Deployed on Render
 
-8. python manage.py makemigrations
-9. python manage.py migrate
-10. python manage.py runserver 0.0.0.0:8000 (locally)
-     - Deployed server is at https://bihance-django.onrender.com/api/
-     
+### API Documentation 😁
+1. Coming soon!! 
+
+### Useful Scripts 🤣
+1. `reset-migrations.sh`
+2. `update-dependencies.sh`
+
+### Set Up 🤩
+1. Clone this repo 
+2. Install the __Ruff VSCode extension__ (static analysis tool)
+3. Configure project-level/user-level VSCode settings 
+   ```
+    # settings.json
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
+   ```
+
+4. Go into the project directory 
+   ```
+   cd bihance-django/bihance
+   ```
+
+5. Create the virtual environment 
+   ```
+   python -m venv venv
+   ```
+6. Activate the virtual environment 
+   ```
+   # Windows 
+   venv\Scripts\activate 
+
+   # MacOS
+   source venv/bin/activate 
+   ```
+
+7. Install the requirements 
+   ```
+   cd .scripts 
+   bash update-dependencies.sh 
+   cd .. 
+   ``` 
+
+8. Create the `.env` file
+   ```
+   touch .env
+   ``` 
+9. Populate the `.env` file 
+   ```
+   # Refer to project's notion page!!
+
+   DATABASE_URL=
+
+   CLERK_FRONTEND_API_URL= 
+   CLERK_SECRET_KEY= 
+
+   RESEND_API_KEY= 
+   RESEND_FROM_EMAIL=
+
+   SECRET_KEY= 
+   DEBUG=
+   ALLOWED_HOSTS=
+   ```
+   <br>
+
+10. Apply the schema migrations 
+    ``` 
+    python manage.py makemigrations 
+    python manage.py migrate
+    ``` 
+
+11. Load the initial data (for DEV database)
+    ```
+    python manage.py loaddata data.json
+    ```
+
+12. Access the local server 
+    ```
+    # http://127.0.0.1:8000 OR 
+    # http://localhost:8000 OR 
+    # http://<public-ip>:8000
+
+    python manage.py runserver 0.0.0.0:8000
+    ```
+
+13. Alternatively, access the deployed server
+    ```     
+    deployed_server_url = https://bihance-django.onrender.com/api/
+    ```
+    
