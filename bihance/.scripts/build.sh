@@ -4,13 +4,8 @@
 set -o errexit
 
 
-# Resolve directories 
-SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${SCRIPT_DIR}/.." 
-REQ_DIR="${PROJECT_ROOT}/.requirements" 
-
-
 # Install the full dependencies 
+# On the deployed side, we are running from the bihance directory!!
 pip install -r ".requirements/requirements.txt"
 
 # Convert static asset files

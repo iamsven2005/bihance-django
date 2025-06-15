@@ -10,7 +10,7 @@ sudo apt install -y python3 python3-pip
 sudo apt autoremove -y 
 
 # Install pip-tools (on WSL side)
-python3 -m pip install --quiet --upgrade pip-tools --root-user-action=ignore
+python3 -m pip install --root-user-action=ignore --quiet --upgrade pip-tools
 
 
 # Resolve directories
