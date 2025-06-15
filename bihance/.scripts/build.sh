@@ -11,7 +11,7 @@ REQ_DIR="${PROJECT_ROOT}/.requirements"
 
 
 # Install the full dependencies 
-pip install -r "${REQ_DIR}/requirements.txt"
+pip install -r "../.requirements/requirements.txt"
 
 # Convert static asset files
 python manage.py collectstatic --no-input
