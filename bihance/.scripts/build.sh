@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
+
 # Exit on error
 set -o errexit
 
-# Modify this line as needed for your package manager (pip, poetry, etc.)
-pip install -r requirements.txt
+
+# Resolve directories 
+SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${SCRIPT_DIR}/.." 
+REQ_DIR="${PROJECT_ROOT}/.requirements" 
+
+
+# Install the full dependencies 
+pip install -r "${REQ_DIR}/requirements.txt"
 
 # Convert static asset files
 python manage.py collectstatic --no-input
