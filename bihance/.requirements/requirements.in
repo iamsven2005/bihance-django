@@ -1,0 +1,16 @@
+# Project direct dependencies (no version) 
+# Handwritten 
+
+# Directly imported within the code (can be generated using pigar) 
+dj-database-url
+Django
+djangorestframework
+PyJWT
+python-dotenv
+requests
+
+# For Django to work with PostgreSQL
+psycopg
+
+# For JWT to not complain 
+cryptography

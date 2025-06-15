@@ -3,9 +3,10 @@
 # Exit on any error 
 set -e
 
-# Install postgreSQL 
-sudo apt update
-sudo apt install postgresql-client
+# Install postgreSQL (on WSL side)
+sudo apt update -y
+sudo apt install postgresql-client -y 
+sudo apt autoremove -y 
 
 
 # Extract out database details, given database connection string
@@ -100,7 +101,7 @@ echo "DB_PORT=$DB_PORT"
 export PGSSLMODE=require          
 export PGPASSWORD="$DB_PASSWORD"  
 
-# Drop and Recreate DEVELOPMENT db (force)
+# Drop and Recreate DB (force)
 echo "Dropping & creating PostgreSQL database $DB_NAME..."
 dropdb --if-exists --force \
        --host="$DB_HOST" --port="$DB_PORT" --username="$DB_USER" "$DB_NAME"
