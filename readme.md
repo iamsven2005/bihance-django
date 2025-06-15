@@ -93,6 +93,8 @@
 
 13. Alternatively, access the deployed server
     ```     
+    # git push to main automatically re-deploys
+
     deployed_server_url = https://bihance-django.onrender.com/api/
     ```
     
