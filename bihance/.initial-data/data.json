@@ -1,7 +1,7 @@
 [
     {
       "model": "applications.User",
-      "pk": "1d1a0000-0000-0000-0000-000000000001",
+      "pk": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
       "fields": {
         "first_name": "John",
         "last_name": "Doe",
@@ -18,7 +18,7 @@
     },
     {
       "model": "applications.User",
-      "pk": "2d2a0000-0000-0000-0000-000000000002",
+      "pk": "efea8845-d9fa-5031-8f01-9318c6eab8bd",
       "fields": {
         "first_name": "Nick",
         "last_name": "Girl",
@@ -36,28 +36,28 @@
     {
       "model": "users.Skill",
       "fields": {
-        "user_id": "1d1a0000-0000-0000-0000-000000000001",
+        "user_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
         "name": "Python"
       }
     },
     {
       "model": "users.Skill",
       "fields": {
-        "user_id": "1d1a0000-0000-0000-0000-000000000001",
+        "user_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
         "name": "C++"
       }
     },
     {
       "model": "users.Skill",
       "fields": {
-        "user_id": "1d1a0000-0000-0000-0000-000000000001",
+        "user_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
         "name": "Rust"
       }
     },
     {
       "model": "users.Interest",
       "fields": {
-        "user_id": "1d1a0000-0000-0000-0000-000000000001",
+        "user_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
         "name": "Badminton",
         "description": "I love to SMASH (shuttle)cocks."
       }
@@ -65,7 +65,7 @@
     {
       "model": "users.Interest",
       "fields": {
-        "user_id": "1d1a0000-0000-0000-0000-000000000001",
+        "user_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
         "name": "Piano",
         "description": "I love to FINGER minor(keys)."
       }
@@ -75,7 +75,7 @@
       "fields": {
         "title": "My First Suggestion",
         "content": "This website abit laggy, please make it load faster!",
-        "author_id": "1d1a0000-0000-0000-0000-000000000001"
+        "author_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775"
       }
     },
     {
@@ -83,7 +83,7 @@
       "pk": "3d3a0000-0000-0000-0000-000000000003",
       "fields": {
         "name": "Forest Guardian & Glitch Hunter",
-        "employer_id": "2d2a0000-0000-0000-0000-000000000002",
+        "employer_id": "efea8845-d9fa-5031-8f01-9318c6eab8bd",
         "start_date": "2025-01-01T12:00:00Z",
         "end_date": null,
         "salary": 3000.0,
@@ -108,8 +108,8 @@
       "fields": {
         "job_id": "3d3a0000-0000-0000-0000-000000000003",
         "accept": 1,
-        "employee_id": "1d1a0000-0000-0000-0000-000000000001",
-        "employer_id": "2d2a0000-0000-0000-0000-000000000002",
+        "employee_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775",
+        "employer_id": "efea8845-d9fa-5031-8f01-9318c6eab8bd",
         "bio": "I really love trees and debugging reality.",
         "employee_review": "Great experience working here!",
         "employer_review": "Very tree-like. Would hire again."
@@ -120,7 +120,7 @@
       "fields": {
         "content": "Hello World",
         "application_id": "99a1b231-4d5e-4db8-bde2-205c3549f8ef",
-        "sender_id": "1d1a0000-0000-0000-0000-000000000001"
+        "sender_id": "958bb96d-d4ef-58ce-add9-7e3ab663d775"
       }
     }
   ]
