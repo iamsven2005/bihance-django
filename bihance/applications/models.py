@@ -82,7 +82,7 @@ class Job(models.Model):
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, db_column="jobId")
     name = models.TextField(max_length=255)
     employer_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="employerId"
+        User, on_delete=models.CASCADE, db_column="employerId"
     )
 
     start_date = models.DateTimeField(db_column="startDate")
@@ -127,17 +127,17 @@ class Application(models.Model):
     application_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, db_column="applicationId"
     )
-    job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
+    job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
     accept = models.IntegerField()
     employee_id = models.ForeignKey(
         User,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column="employeeId",
         related_name="applications_as_employee",
     )
     employer_id = models.ForeignKey(
         User,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column="employerId",
         related_name="appications_as_employer",
     )

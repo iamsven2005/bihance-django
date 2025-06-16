@@ -1,10 +1,9 @@
 import uuid
 
+from applications.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
-
-from applications.models import User
 
 
 class EmployerProfile(models.Model):
@@ -12,7 +11,7 @@ class EmployerProfile(models.Model):
         primary_key=True, default=uuid.uuid4, db_column="companyId"
     )
     employer_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="employerId"
+        User, on_delete=models.CASCADE, db_column="employerId"
     )
     company_name = models.TextField(db_column="companyName")
     company_website = models.URLField(db_column="companyWebsite")
@@ -49,10 +48,10 @@ class CompanyFollow(models.Model):
         primary_key=True, default=uuid.uuid4, db_column="followId"
     )
     follower_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="followerId"
+        User, on_delete=models.CASCADE, db_column="followerId"
     )
     company_id = models.ForeignKey(
-        EmployerProfile, on_delete=models.DO_NOTHING, db_column="companyId"
+        EmployerProfile, on_delete=models.CASCADE, db_column="companyId"
     )
     created_at = models.DateTimeField(default=timezone.now, db_column="createdAt")
 

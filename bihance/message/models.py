@@ -1,9 +1,8 @@
 import uuid
 
+from applications.models import Application, User
 from django.db import models
 from django.utils import timezone
-
-from applications.models import Application, User
 
 
 class Message(models.Model):
@@ -13,11 +12,9 @@ class Message(models.Model):
     content = models.TextField()
     date = models.DateTimeField(default=timezone.now)
     application_id = models.ForeignKey(
-        Application, on_delete=models.DO_NOTHING, db_column="applicationId"
+        Application, on_delete=models.CASCADE, db_column="applicationId"
     )
-    sender_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="senderId"
-    )
+    sender_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="senderId")
     is_edited = models.BooleanField(default=False, db_column="isEdited")
     is_deleted = models.BooleanField(default=False, db_column="isDeleted")
     last_edited_at = models.DateTimeField(
@@ -25,7 +22,7 @@ class Message(models.Model):
     )
     reply_to_id = models.ForeignKey(
         "self",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         db_column="replyToId",

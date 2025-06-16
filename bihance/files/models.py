@@ -78,31 +78,31 @@ class File(models.Model):
         Message,
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         db_column="associatedMessage",
     )
     associated_group_message = models.ForeignKey(
         GroupMessage,
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         db_column="associatedGroupMessage",
     )
     associated_user = models.ForeignKey(
         User,
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         db_column="associatedUser",
     )
     associated_job = models.ForeignKey(
-        Job, null=True, blank=True, on_delete=models.PROTECT, db_column="associatedJob"
+        Job, null=True, blank=True, on_delete=models.CASCADE, db_column="associatedJob"
     )
     associated_company = models.ForeignKey(
         EmployerProfile,
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         db_column="associatedCompany",
     )
 

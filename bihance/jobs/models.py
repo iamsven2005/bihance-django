@@ -1,8 +1,7 @@
 import uuid
 
-from django.db import models
-
 from applications.models import Job
+from django.db import models
 
 
 class JobRequirement(models.Model):
@@ -10,7 +9,7 @@ class JobRequirement(models.Model):
         primary_key=True, default=uuid.uuid4, db_column="requirementId"
     )
     name = models.TextField()
-    job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
+    job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
 
     class Meta:
         db_table = "Job_Requirement"

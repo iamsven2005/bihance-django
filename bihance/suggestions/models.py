@@ -1,9 +1,8 @@
 import uuid
 
+from applications.models import User
 from django.db import models
 from django.utils import timezone
-
-from applications.models import User
 
 
 class Suggestion(models.Model):
@@ -14,9 +13,7 @@ class Suggestion(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
     updated_at = models.DateTimeField(db_column="updatedAt", default=timezone.now)
-    author_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="authorId"
-    )
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="authorId")
     is_useful = models.BooleanField(db_column="isUseful", default=False)
 
     class Meta:
@@ -33,11 +30,9 @@ class SuggestionComment(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
     updated_at = models.DateTimeField(db_column="updatedAt", default=timezone.now)
-    author_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="authorId"
-    )
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="authorId")
     suggestion_id = models.ForeignKey(
-        Suggestion, on_delete=models.DO_NOTHING, db_column="suggestionId"
+        Suggestion, on_delete=models.CASCADE, db_column="suggestionId"
     )
 
     class Meta:
@@ -46,9 +41,9 @@ class SuggestionComment(models.Model):
 
 class SuggestionVote(models.Model):
     vote_id = models.UUIDField(primary_key=True, db_column="voteId", default=uuid.uuid4)
-    user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="userId")
     suggestion_id = models.ForeignKey(
-        Suggestion, on_delete=models.DO_NOTHING, db_column="suggestionId"
+        Suggestion, on_delete=models.CASCADE, db_column="suggestionId"
     )
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
 

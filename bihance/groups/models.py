@@ -1,9 +1,8 @@
 import uuid
 
+from applications.models import Job, User
 from django.db import models
 from django.utils import timezone
-
-from applications.models import Job, User
 
 
 class RoleType(models.TextChoices):
@@ -17,10 +16,10 @@ class Group(models.Model):
     )
     bio = models.TextField()
     creator_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="creatorId"
+        User, on_delete=models.CASCADE, db_column="creatorId"
     )
     # Members are all involved in this job (employee/employer)
-    job_id = models.ForeignKey(Job, on_delete=models.DO_NOTHING, db_column="jobId")
+    job_id = models.ForeignKey(Job, on_delete=models.CASCADE, db_column="jobId")
 
     class Meta:
         db_table = "Group"
@@ -33,10 +32,8 @@ class GroupMember(models.Model):
     member_id = models.UUIDField(
         primary_key=True, db_column="memberId", default=uuid.uuid4
     )
-    user_id = models.ForeignKey(User, on_delete=models.DO_NOTHING, db_column="userId")
-    group_id = models.ForeignKey(
-        Group, on_delete=models.DO_NOTHING, db_column="groupId"
-    )
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="userId")
+    group_id = models.ForeignKey(Group, on_delete=models.CASCADE, db_column="groupId")
     role = models.TextField(choices=RoleType.choices)
 
     class Meta:
@@ -52,11 +49,9 @@ class GroupMessage(models.Model):
     )
     content = models.TextField()
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
-    group_id = models.ForeignKey(
-        Group, on_delete=models.DO_NOTHING, db_column="groupId"
-    )
+    group_id = models.ForeignKey(Group, on_delete=models.CASCADE, db_column="groupId")
     sender_id = models.ForeignKey(
-        GroupMember, on_delete=models.DO_NOTHING, db_column="senderId"
+        GroupMember, on_delete=models.CASCADE, db_column="senderId"
     )
 
     is_edited = models.BooleanField(db_column="isEdited", default=False)
@@ -66,7 +61,7 @@ class GroupMessage(models.Model):
     )
     reply_to_id = models.ForeignKey(
         "self",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         db_column="replyToId",
         blank=True,
         null=True,

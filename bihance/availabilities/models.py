@@ -1,8 +1,7 @@
 import uuid
 
-from django.db import models
-
 from applications.models import User
+from django.db import models
 
 
 class Timing(models.Model):
@@ -10,7 +9,7 @@ class Timing(models.Model):
     start_time = models.DateTimeField(db_column="startTime")
     end_time = models.DateTimeField(db_column="endTime")
     employee_id = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, db_column="employeeId"
+        User, on_delete=models.CASCADE, db_column="employeeId"
     )
     title = models.TextField(blank=True, null=True)
 
