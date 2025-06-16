@@ -86,7 +86,9 @@
         - This creates the two user records 
         - Take note of the employee's and employer's UUID/pk
         - Use them in `data.json`
-        - Finally, run the command below
+        - Finally, run the command below 
+          <br>
+          <br>
     ```
     python manage.py loaddata data.json
     ```
