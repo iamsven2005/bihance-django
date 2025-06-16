@@ -78,6 +78,15 @@
     ``` 
 
 11. Load the initial data (for DEV database)
+      - Create two test accounts on Clerk (done already)
+        - employer_test@gmail.com (pw: employer12345!)
+        - employee_test@gmail.com (pw: employee12345!)
+
+      - Attempt to GET over a random endpoint over the frontend (probably will fail)
+        - This creates the two user records 
+        - Take note of the employee's and employer's UUID/pk
+        - Use them in `data.json`
+        - Finally, run the command below
     ```
     python manage.py loaddata data.json
     ```
