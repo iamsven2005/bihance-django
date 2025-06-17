@@ -96,6 +96,8 @@ class Job(models.Model):
     start_age = models.IntegerField(null=True, blank=True, db_column="startage")
     end_age = models.IntegerField(null=True, blank=True, db_column="endage")
 
+    category = models.CharField(max_length=100, null=True, blank=True)
+
     # True -> Female, # False -> Male
     gender = models.BooleanField(null=True, blank=True)
 

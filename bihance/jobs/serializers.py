@@ -20,6 +20,7 @@ class JobCreateInputSerializer(serializers.Serializer):
     endAge = serializers.IntegerField(required=False)
     gender = serializers.BooleanField(required=False)
     requirements = serializers.CharField(required=False)
+    category = serializers.CharField(required=False)
     description = serializers.CharField()
     locationName = serializers.CharField(required=False)
     jobRequirements = serializers.ListField(
@@ -67,6 +68,7 @@ class JobPartialUpdateInputSerializer(serializers.Serializer):
     endAge = serializers.IntegerField(required=False)
     gender = serializers.BooleanField(required=False)
     requirements = serializers.CharField(required=False)
+    category = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
     locationName = serializers.CharField(required=False)
     jobRequirements = serializers.ListField(

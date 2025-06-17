@@ -37,6 +37,7 @@ class JobSerializer(serializers.ModelSerializer):
             "higher_salary",
             "description",
             "requirements",
+            "category",
             "posted_date",
             "start_age",
             "end_age",
