@@ -2,7 +2,7 @@
 ## Django & PostgreSQL, Deployed on Render
 
 ### API Documentation 😁
-1. Coming soon!! 
+1. Refer [here](https://www.notion.so/1dc523f1f08a80d68678f4e89e775a7c?v=1dc523f1f08a8024bdc8000c0b8777aa&p=214523f1f08a801385cff797f2580e82&pm=s) for the full documentation!
 
 ### Useful Scripts 🤣
 1. `reset-migrations.sh`

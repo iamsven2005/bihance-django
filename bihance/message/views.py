@@ -175,7 +175,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             f"Message created successfully with message id: {message_id}.", status=200
         )
 
-    # PATCH -> messages/message_id
+    # PATCH -> messages/:message_id
     def partial_update(self, request, pk=None):
         # Input validation
         input_serializer_class = self.get_input_serializer_class()
@@ -229,7 +229,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         return HttpResponse("Message successfully edited.", status=200)
 
-    # DELETE -> messages/message_id
+    # DELETE -> messages/:message_id
     def destroy(self, request, pk=None):
         # Try to retrieve the message record
         try:
