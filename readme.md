@@ -47,6 +47,7 @@
    cd .scripts 
    bash update-dependencies.sh 
    cd .. 
+   pip install -r .requirements/requirements.txt
    ``` 
 
 8. Create the `.env` file

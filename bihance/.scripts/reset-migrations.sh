@@ -123,14 +123,14 @@ rm -rf suggestions/migrations
 rm -rf users/migrations
 
 
-# Recreate migrations
-# Absolute path to the Windows venv’s Python
-PYWIN="/mnt/c/bihance/bihance-django/bihance/venv/Scripts/python.exe"
+# # Recreate migrations
+# # Absolute path to the Windows venv’s Python
+# PYWIN="/mnt/c/bihance/bihance-django/bihance/venv/Scripts/python.exe"
 
-# Make migrations
-"$PYWIN" manage.py makemigrations \
-    applications availabilities companies employer files \
-    groups jobs message reviews suggestions users
+# # Make migrations
+# "$PYWIN" manage.py makemigrations \
+#     applications availabilities companies employer files \
+#     groups jobs message reviews suggestions users
 
-# Apply them
-"$PYWIN" manage.py migrate
+# # Apply them
+# "$PYWIN" manage.py migrate
