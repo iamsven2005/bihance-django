@@ -17,7 +17,7 @@ from .utils import is_employer_in_job, to_json_object
 
 
 class JobsViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     input_field_to_model_field_mapping = {
         "name": "name",

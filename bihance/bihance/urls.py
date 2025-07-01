@@ -28,4 +28,4 @@ router.register(r"groups", GroupViewSet, "groups")
 router.register(r"group-messages", GroupMessageViewSet, "group-messages")
 
 
-urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]
+urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls)), path('api/saved-jobs/', include('savedjobs.urls'))]

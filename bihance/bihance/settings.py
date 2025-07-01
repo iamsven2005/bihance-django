@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "reviews.apps.ReviewsConfig",
     "suggestions.apps.SuggestionsConfig",
     "users.apps.UsersConfig",
+    "savedjobs",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
